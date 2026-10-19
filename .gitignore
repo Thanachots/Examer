@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 .venv/
 .env
+
+# ไฟล์เสริมส่วนตัวของแต่ละคน (ดู ai-agents/setup-memories.md)
+ai-agents/*/*/private/
