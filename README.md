@@ -232,7 +232,7 @@ Input 224×224×3
 
 | โฟลเดอร์ | มีอะไร |
 |---|---|
-| `apps/` | หน้า app (HTML/CSS/JS) — ตอนนี้ผลตรวจเป็นโหมดจำลอง |
+| `apps/` | หน้า app (HTML/CSS/JS) + engine รันโมเดลในเบราว์เซอร์ (`apps/engine/`) — ดู [apps/README.md](apps/README.md) |
 | `docs/` | เอกสารทีม: [CONTRIBUTING.md](docs/CONTRIBUTING.md) กติกา git · [ENGINE.md](docs/ENGINE.md) รูปแบบข้อมูลจากโมเดล |
 | `.github/workflows/` | deploy + เช็ค PR |
 

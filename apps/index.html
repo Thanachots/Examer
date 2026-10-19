@@ -2,7 +2,8 @@
 <html lang="th">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1f5c4a" />
   <title>Examer — ตรวจข้อสอบข้อเขียน</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
@@ -10,91 +11,31 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">
+    <a class="brand" href="#/">
       <span class="logo">E</span>
-      <div>
-        <h1>Examer</h1>
-        <p>ระบบตรวจข้อสอบข้อเขียน · Template 2 (ต้นแบบ Web)</p>
-      </div>
-    </div>
-    <span id="mode-badge" class="badge">โหมดจำลอง</span>
+      <span><b>Examer</b><small>ตรวจข้อสอบข้อเขียน</small></span>
+    </a>
+    <nav class="nav">
+      <a href="#/" data-match="#/exam #/sheet">การสอบ</a>
+      <a href="#/classes" data-match="#/class">ห้องเรียน</a>
+      <a href="#/settings">ตั้งค่า</a>
+    </nav>
+    <a id="mode-badge" class="badge" href="#/settings"></a>
   </header>
 
-  <main class="layout">
-    <!-- คอลัมน์ซ้าย: อินพุต -->
-    <section class="panel inputs">
-      <h2>1. ภาพกระดาษคำตอบ</h2>
-      <label id="drop" class="drop">
-        <input id="file" type="file" accept="image/*" hidden />
-        <strong>ลากภาพมาวาง หรือคลิกเพื่อเลือก</strong>
-        <span>JPG / PNG · สแกน หรือถ่ายจากมือถือ</span>
-      </label>
-      <p id="file-name" class="muted"></p>
+  <main id="view" class="container"></main>
 
-      <h2>2. เฉลย (20 ข้อ)</h2>
-      <p class="muted small">ข้อละ 1 คำ A–Z ไม่เกิน 20 ตัว · ข้อที่เว้นว่างจะไม่นับคะแนน</p>
-      <div id="key" class="key"></div>
-      <div class="row">
-        <button id="key-demo" class="ghost" type="button">ใส่เฉลยตัวอย่าง</button>
-        <button id="key-clear" class="ghost" type="button">ล้าง</button>
-      </div>
-
-      <button id="run" class="primary" type="button" disabled>ตรวจกระดาษ</button>
-      <p id="status" class="muted small"></p>
-    </section>
-
-    <!-- คอลัมน์ขวา: ผลลัพธ์ -->
-    <section class="panel outputs">
-      <nav class="tabs" role="tablist">
-        <button class="tab active" data-tab="dewarp">① ตัดขอบ/ปรับภาพ</button>
-        <button class="tab" data-tab="cells">② จับช่อง</button>
-        <button class="tab" data-tab="read">③ อ่านตัวอักษร</button>
-        <button class="tab" data-tab="score">ผลคะแนน</button>
-      </nav>
-
-      <div class="tabpane active" id="tab-dewarp">
-        <div class="compare">
-          <figure><figcaption>Before</figcaption><canvas id="cv-before"></canvas></figure>
-          <figure><figcaption>After</figcaption><canvas id="cv-after"></canvas></figure>
-        </div>
-        <p id="dewarp-meta" class="muted small"></p>
-      </div>
-
-      <div class="tabpane" id="tab-cells">
-        <figure class="single"><canvas id="cv-cells"></canvas></figure>
-        <p id="cells-meta" class="muted small"></p>
-      </div>
-
-      <div class="tabpane" id="tab-read">
-        <div class="legend">
-          <span><i class="sw ok"></i>อ่านได้</span>
-          <span><i class="sw low"></i>ความมั่นใจต่ำ → ครูตรวจ</span>
-          <span><i class="sw crossed"></i>ขีดฆ่า</span>
-          <span><i class="sw empty"></i>ว่าง</span>
-        </div>
-        <div id="grid" class="grid"></div>
-        <p class="muted small">คลิกช่องเพื่อแก้ตัวอักษร (ครูตรวจซ้ำ)</p>
-      </div>
-
-      <div class="tabpane" id="tab-score">
-        <div class="summary">
-          <div class="stat"><span id="s-score">–</span><label>คะแนน</label></div>
-          <div class="stat"><span id="s-review">–</span><label>ช่องรอครูตรวจ</label></div>
-          <div class="stat"><span id="s-student">–</span><label>รหัสนักเรียน</label></div>
-        </div>
-        <table class="result">
-          <thead><tr><th>ข้อ</th><th>อ่านได้</th><th>เฉลย</th><th>ผล</th></tr></thead>
-          <tbody id="result-body"></tbody>
-        </table>
-        <div class="row">
-          <button id="dl-json" class="ghost" type="button" disabled>ดาวน์โหลด JSON</button>
-          <button id="dl-csv" class="ghost" type="button" disabled>ดาวน์โหลด CSV</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
+  <!-- ลำดับสำคัญ -->
+  <script src="js/store.js"></script>
+  <script src="js/engine.js"></script>
   <script src="js/pipeline.js"></script>
+  <script src="js/school.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/view-home.js"></script>
+  <script src="js/view-classes.js"></script>
+  <script src="js/view-exam.js"></script>
+  <script src="js/view-sheet.js"></script>
+  <script src="js/view-settings.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
