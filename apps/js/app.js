@@ -64,11 +64,13 @@ $("#run").onclick = async () => {
   setStatus("กำลังตรวจ…");
   try {
     result = await Pipeline.run(file, getKey());
-    drawAfter();
-    drawCells();
+    await drawAfter();
+    await drawCells();
     renderGrid();
     renderScore();
-    setStatus(Pipeline.isLive() ? "ตรวจเสร็จ" : "ตรวจเสร็จ (ผลจำลอง — ยังไม่ได้ต่อโมเดล)");
+    setStatus(
+      Pipeline.isLive() ? "ตรวจเสร็จ" : "ตรวจเสร็จ (ผลจำลอง — ยังไม่ได้ต่อโมเดล)"
+    );
   } catch (err) {
     setStatus("ผิดพลาด: " + err.message);
   } finally {
@@ -102,9 +104,30 @@ function drawBefore() {
   fit(c, image.naturalWidth, image.naturalHeight).drawImage(image, 0, 0, c.width, c.height);
 }
 
+// วาดภาพจาก data URL ลง canvas (ใช้กับภาพที่โมเดลส่งกลับมา)
+function drawDataUrl(canvas, url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      fit(canvas, img.naturalWidth, img.naturalHeight).drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve();
+    };
+    img.onerror = resolve;
+    img.src = url;
+  });
+}
+
+// ต่อโมเดลแล้ว: "After" = ภาพที่โมเดลดัดระนาบแล้วจริง
 // โหมดจำลอง: "After" = grayscale + เพิ่ม contrast (ยังไม่ได้ตัดขอบจริง)
-function drawAfter() {
+async function drawAfter() {
   const c = $("#cv-after");
+  if (result.images?.rectified) {
+    await drawDataUrl(c, result.images.rectified);
+    const t = result.timing_ms || {};
+    $("#dewarp-meta").textContent =
+      `มุมกระดาษบนภาพต้นฉบับ: ${JSON.stringify(result.dewarp.corners)} · ${t.dewarp ?? "?"} ms`;
+    return;
+  }
   const ctx = fit(c, image.naturalWidth, image.naturalHeight);
   ctx.drawImage(image, 0, 0, c.width, c.height);
   const d = ctx.getImageData(0, 0, c.width, c.height);
@@ -119,9 +142,15 @@ function drawAfter() {
     : "โหมดจำลอง: แสดงแค่ grayscale — รอโมเดลส่วนที่ 1 (หา 3 สี่เหลี่ยมดำ → homography)";
 }
 
-function drawCells() {
+async function drawCells() {
   const src = $("#cv-after");
   const c = $("#cv-cells");
+  if (result.images?.overlay) {
+    await drawDataUrl(c, result.images.overlay);
+    $("#cells-meta").textContent =
+      `${ROWS}×${COLS} = ${ROWS * COLS} ช่อง · ภาพ overlay จากโมเดล · ${result.timing_ms?.total ?? "?"} ms ทั้งแผ่น`;
+    return;
+  }
   c.width = src.width;
   c.height = src.height;
   const ctx = c.getContext("2d");
@@ -218,6 +247,6 @@ function download(name, text, type) {
 
 // ---------- badge ----------
 if (Pipeline.isLive()) {
-  $("#mode-badge").textContent = "ต่อ backend แล้ว";
+  $("#mode-badge").textContent = "ต่อโมเดลแล้ว";
   $("#mode-badge").classList.add("live");
 }

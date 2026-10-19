@@ -222,3 +222,18 @@ Input 224×224×3
 - ศูนย์ข้อมูลเปิด ศธ. สถิติการศึกษา 2567 — https://catalog.moe.go.th/dataset/4f25479f-1558-4da3-aab1-9c3cc998409b/resource/6b0ebfe6-f0f0-4948-acde-651d4ba1f304/download/t1_2567.pdf
 - สำนักงานสถิติแห่งชาติ — https://www.nso.go.th/public/e-book/Bulletin-of-Statistics/bulletin-1-68/58
 - AI Grading Assistants Market — https://growthmarketreports.com/report/ai-grading-assistants-market/amp
+
+---
+
+## Repo นี้
+
+**เปิดเว็บ (ต้นแบบ):** https://thanachots.github.io/Examer/
+— deploy อัตโนมัติทุกครั้งที่ merge เข้า `main`
+
+| โฟลเดอร์ | มีอะไร |
+|---|---|
+| `apps/` | หน้า app (HTML/CSS/JS) — ตอนนี้ผลตรวจเป็นโหมดจำลอง |
+| `docs/` | เอกสารทีม: [CONTRIBUTING.md](docs/CONTRIBUTING.md) กติกา git · [ENGINE.md](docs/ENGINE.md) รูปแบบข้อมูลจากโมเดล |
+| `.github/workflows/` | deploy + เช็ค PR |
+
+โมเดลพัฒนาอยู่ใน repo แยก: [67160328/Computer-Vision](https://github.com/67160328/Computer-Vision)
