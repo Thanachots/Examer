@@ -1,0 +1,23 @@
+# ตรวจงานใน Pull Request ก่อน merge เข้า main
+# apps: เช็ค syntax JavaScript และไฟล์หลักของหน้า app ยังอยู่ครบ
+name: Check pull request
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  apps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check JavaScript syntax
+        run: for f in apps/js/*.js; do node --check "$f"; done
+
+      - name: Check required app files exist
+        run: test -f apps/index.html && test -f apps/style.css
+

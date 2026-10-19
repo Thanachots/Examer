@@ -1,21 +1,20 @@
-// Examer pipeline — จุดเดียวที่เว็บเรียกระบบตรวจ
+// Examer pipeline — จุดเดียวที่หน้า app เรียกระบบตรวจ
 //
-// ตอนนี้ยังไม่มีโมเดล จึงใช้ "โหมดจำลอง" (mock) ทั้ง 3 ส่วน
-// เมื่อ backend พร้อม ให้ตั้ง API_URL แล้ว runPipeline จะส่งภาพไปที่ POST {API_URL}/grade
-// โดย backend ต้องตอบ JSON รูปแบบเดียวกับ mockResult() ด้านล่าง
+// โมเดลจะรันในเบราว์เซอร์ (ไม่มี server) — ตอนนี้ยังไม่ได้ต่อ จึงใช้ "โหมดจำลอง" (mock) ทั้ง 3 ส่วน
+// ตอนต่อโมเดลจริง: แก้แค่ Pipeline.run() ให้เรียก engine แล้วคืนผลตามรูปแบบใน docs/ENGINE.md
 
 const ROWS = 20;           // ข้อ 1–20
 const COLS = 20;           // ช่องต่อข้อ
-const LOW_CONF = 0.6;      // ต่ำกว่านี้ → ส่งครูตรวจ (ต้องหาค่าจริงจากการทดลอง)
-const API_URL = null;      // เช่น "http://localhost:8000"
+const LOW_CONF = 0.55;     // ต่ำกว่านี้ → ส่งครูตรวจ (ตรงกับ review_conf_threshold ของโมเดล)
+const ENGINE = null;       // engine ที่รันในเบราว์เซอร์ (ยังไม่มี) — null = โหมดจำลอง
 
 const Pipeline = {
   ROWS, COLS, LOW_CONF,
-  isLive: () => Boolean(API_URL),
+  isLive: () => Boolean(ENGINE),   // true เมื่อต่อโมเดลจริงแล้ว
 
   /**
    * @param {File} file ภาพกระดาษคำตอบ
-   * @param {string[]} key เฉลย 20 ข้อ (ใช้เฉพาะโหมดจำลองเพื่อสร้างข้อมูลตัวอย่าง)
+   * @param {string[]} key เฉลย 20 ข้อ (โหมดจำลองใช้สร้างข้อมูลตัวอย่าง)
    * @returns {Promise<Result>}
    *
    * Result = {
@@ -23,16 +22,12 @@ const Pipeline = {
    *   dewarp:  { corners: [[x,y] x4] | null, width, height },   // พิกัดในภาพต้นฉบับ
    *   cells:   { box: {x,y,w,h} },                              // กรอบตารางในภาพที่ปรับแล้ว (0–1)
    *   reads:   Cell[20][20]   // Cell = { char: "A"-"Z" | "", conf: 0–1, cls: "char"|"empty"|"crossed" }
+   *   images?: { rectified: dataURL, overlay: dataURL }   // มีเมื่อต่อโมเดลจริง
+   *   (ฟิลด์อื่นทั้งหมดดูใน docs/ENGINE.md)
    * }
    */
   async run(file, key) {
-    if (API_URL) {
-      const body = new FormData();
-      body.append("image", file);
-      const res = await fetch(`${API_URL}/grade`, { method: "POST", body });
-      if (!res.ok) throw new Error(`backend ตอบ ${res.status}`);
-      return res.json();
-    }
+    if (ENGINE) return ENGINE.grade(file, key);   // TODO: ต่อ engine ในเบราว์เซอร์
     await new Promise((r) => setTimeout(r, 400));
     return mockResult(key);
   },

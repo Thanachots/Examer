@@ -1,0 +1,42 @@
+# Deploy เว็บต้นแบบ (โฟลเดอร์ apps/) ขึ้น GitHub Pages
+# ทำงานเมื่อ: มีการ push/merge เข้า main ที่แก้ไฟล์ใน apps/ หรือกดรันเองในแท็บ Actions
+name: Deploy apps to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/**"
+      - ".github/workflows/deploy-apps.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# ถ้ามีหลายคน merge ติดกัน ให้ deploy ทีละรอบ และยกเลิกรอบเก่าที่ยังรออยู่
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check JavaScript syntax
+        run: for f in apps/js/*.js; do node --check "$f"; done
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
