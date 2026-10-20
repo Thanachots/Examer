@@ -1,10 +1,10 @@
 // ที่เก็บข้อมูลในเบราว์เซอร์
-// - ห้องเรียน (รายชื่อนักเรียน), การสอบ, กระดาษคำตอบ (รวมภาพ) → IndexedDB
+// - ห้องเรียน (รายชื่อนักเรียน), รายวิชา, ครู, การสอบ, กระดาษคำตอบ (รวมภาพ), ผลที่ครูส่งมา → IndexedDB
 // - ตั้งค่า → localStorage
 // ถ้าเบราว์เซอร์ไม่ให้ใช้ (private mode ฯลฯ) จะเก็บในหน่วยความจำแทน (หายเมื่อปิดหน้า)
 
 const Store = (() => {
-  const NAMES = ["classes", "exams", "sheets"];
+  const NAMES = ["classes", "subjects", "teachers", "exams", "sheets", "submissions"];
   const mem = Object.fromEntries(NAMES.map((n) => [n, new Map()]));
   let dbp = null;
 
@@ -12,12 +12,11 @@ const Store = (() => {
     if (dbp) return dbp;
     dbp = new Promise((resolve) => {
       try {
-        const rq = indexedDB.open("examer", 2);
+        const rq = indexedDB.open("examer", 3);
         rq.onupgradeneeded = () => {
           const db = rq.result;
-          if (!db.objectStoreNames.contains("exams")) db.createObjectStore("exams", { keyPath: "id" });
           if (!db.objectStoreNames.contains("sheets")) db.createObjectStore("sheets", { keyPath: "id" }).createIndex("examId", "examId");
-          if (!db.objectStoreNames.contains("classes")) db.createObjectStore("classes", { keyPath: "id" });
+          for (const n of NAMES) if (!db.objectStoreNames.contains(n)) db.createObjectStore(n, { keyPath: "id" });
         };
         rq.onsuccess = () => resolve(rq.result);
         rq.onerror = () => resolve(null);
@@ -75,7 +74,7 @@ const Store = (() => {
     },
     async clear() {
       for (const ex of await this.all("exams")) await this.deleteExam(ex.id);
-      for (const c of await this.all("classes")) await this.del("classes", c.id);
+      for (const n of ["classes", "subjects", "teachers", "submissions"]) for (const x of await this.all(n)) await this.del(n, x.id);
     },
   };
 })();
@@ -89,8 +88,11 @@ const Settings = (() => {
     gap: "join",         // join = ต่อกัน · wrong = ผิด   (เว้นช่องกลางคำ)
     start: "accept",     // accept = ยอมรับ · wrong = ผิด (ไม่เริ่มช่องแรก)
     partial: "word",     // word = ถูกทั้งคำเท่านั้น · letters = ตามสัดส่วนตัวอักษรถูก
-    teacher: "",
-    school: "",
+    role: "",            // "" = ยังไม่ได้เลือก · teacher = ครูผู้สอน · admin = ฝ่ายวิชาการ
+    teacherName: "",
+    schoolName: "",
+    year: String(new Date().getFullYear() + 543 - (new Date().getMonth() < 4 ? 1 : 0)), // ปีการศึกษา (เริ่ม พ.ค.)
+    term: new Date().getMonth() >= 4 && new Date().getMonth() <= 9 ? "1" : "2",
   };
   let memo = null;
   return {

@@ -9,7 +9,7 @@ Views.sheet = async (root, id) => {
   const idx = order.indexOf(id);
   const prev = order[idx - 1], next = order[idx + 1];
   const info = sum.sheets[idx];
-  const back = `#/exam/${exam.id}/${info.issues.length || info.grade?.lowCells ? "review" : "scan"}`;
+  const back = `#/exam/${exam.id}/${info.issues.length || info.grade?.lowCells ? "check" : "photo"}`;
 
   let img = null, dewarped = null;
   try { img = await loadImage(sheet.image); } catch {}
@@ -18,14 +18,24 @@ Views.sheet = async (root, id) => {
   const head = `
     <div class="page-head">
       <div>
-        <a class="back" href="${back}">← ${esc(exam.name)}</a>
+        <a class="back" href="${back}">${ico("back")}${esc(exam.name)}</a>
         <h2>${info.student ? esc(studentLabel(info.student)) : "แผ่นที่ " + (idx + 1)} <span class="muted small">${idx + 1}/${order.length} · ${esc(sheet.fileName)}</span></h2>
       </div>
       <div class="row">
-        <a class="btn ghost ${prev ? "" : "disabled"}" href="${prev ? "#/sheet/" + prev : "#"}">← ก่อนหน้า</a>
-        <a class="btn ghost ${next ? "" : "disabled"}" href="${next ? "#/sheet/" + next : "#"}">ถัดไป →</a>
+        <a class="btn ghost ${prev ? "" : "disabled"}" href="${prev ? "#/sheet/" + prev : "#"}">${ico("back")}ก่อนหน้า</a>
+        <a class="btn ghost ${next ? "" : "disabled"}" href="${next ? "#/sheet/" + next : "#"}">ถัดไป${ico("next")}</a>
       </div>
     </div>`;
+
+  if (sheetPending(sheet)) {
+    root.innerHTML = head + `
+      <div class="engine-line"><span class="dot warn"></span> แผ่นนี้อยู่ในคิวตรวจ — หน้านี้จะอัปเดตเองเมื่อตรวจเสร็จ</div>
+      <section class="card"><canvas id="cv"></canvas></section>`;
+    if (img) drawImage($("#cv"), img);
+    Page.onLeave(ScanQueue.onChange((st, done) => { if (done && done.id === sheet.id) router(); }));
+    ScanQueue.kick();
+    return;
+  }
 
   if (sheet.error) {
     root.innerHTML = head + `
@@ -35,11 +45,7 @@ Views.sheet = async (root, id) => {
         <p class="muted small">สาเหตุที่พบบ่อย: มองไม่เห็นสี่เหลี่ยมดำครบ 3 มุม, ภาพมืด/เบลอ, ถ่ายเอียงมาก — ลองถ่ายใหม่แล้วอัปโหลดอีกครั้ง</p>
       </section>`;
     if (img) drawImage($("#cv"), img);
-    $("#retry").onclick = async (e) => {
-      e.target.disabled = true; e.target.textContent = "กำลังตรวจ…";
-      try { sheet.result = await Pipeline.run(sheet.image, exam); delete sheet.error; } catch (err) { sheet.error = err.message; }
-      await Store.put("sheets", sheet); router();
-    };
+    $("#retry").onclick = async () => { await ScanQueue.retry(sheet); router(); };
     armButton($("#rm"), "ลบ?", async () => { await Store.del("sheets", sheet.id); location.hash = back; });
     return;
   }
@@ -55,9 +61,9 @@ Views.sheet = async (root, id) => {
     <div class="sheet-layout">
       <section class="card">
         <div class="seg">
-          <button data-stage="before">ภาพที่ถ่าย</button>
+          <button data-stage="before">รูปที่ถ่าย</button>
           <button data-stage="after">ตัดขอบแล้ว</button>
-          <button data-stage="cells">ช่องที่จับได้</button>
+          <button data-stage="cells">ช่องที่ระบบเห็น</button>
         </div>
         <canvas id="cv"></canvas>
         <p id="stage-note" class="muted small"></p>
@@ -70,7 +76,7 @@ Views.sheet = async (root, id) => {
                 ${roster.map((s) => `<option value="${esc(s.sid)}" ${info.student && Roster.norm(info.student.sid) === Roster.norm(s.sid) ? "selected" : ""}>${esc(studentLabel(s))}${s.room ? " (" + esc(s.room) + ")" : ""}</option>`).join("")}
               </select>`
               : `<input id="sid" class="mono" value="${esc(info.sid)}" inputmode="numeric" />`}
-            <small class="muted">อ่านจากกระดาษ: <span class="mono">${esc(r.student_id || "—")}</span>${r.header?.student_id?.review ? " · ไม่มั่นใจ" : ""}</small>
+            <small class="muted">อ่านจากกระดาษ: <span class="mono">${esc(r.student_id || "—")}</span>${r.header?.student_id?.review ? " · ระบบไม่แน่ใจ" : ""}</small>
           </label>
           <label>ชุด<select id="set">${SETS.map((n) => `<option value="${n}">${n}${n === r.set ? " ✓" : ""}</option>`).join("")}</select></label>
           <label>หน้า<select id="page">${Array.from({ length: Math.max(exam.pages || 1, r.page || 1) }, (_, i) => i + 1).map((n) => `<option value="${n}">${n}${n === r.page ? " ✓" : ""}</option>`).join("")}</select></label>
@@ -78,7 +84,7 @@ Views.sheet = async (root, id) => {
         </div>
         <div class="card">
           <div class="legend">
-            <span><i class="sw ok"></i>อ่านได้</span><span><i class="sw low"></i>ไม่มั่นใจ</span>
+            <span><i class="sw ok"></i>อ่านได้</span><span><i class="sw low"></i>ระบบไม่แน่ใจ</span>
             <span><i class="sw crossed"></i>ขีดฆ่า</span><span><i class="sw edited"></i>ครูแก้แล้ว</span>
           </div>
           <div id="grid" class="grid" tabindex="0" aria-label="ตารางคำตอบ 20×20"></div>
@@ -137,7 +143,7 @@ Views.sheet = async (root, id) => {
     p.innerHTML = `<div class="cp-crop"></div><div class="cp-info">
       <b>ข้อ ${(Grade.pageOf(sheet) - 1) * ROWS + sel.r + 1} ช่อง ${sel.c + 1}</b>
       <div class="muted small">${o ? `ระบบอ่าน “${esc(o.char)}” → ครูแก้เป็น ${cell.cls === "empty" ? "ช่องว่าง" : cell.cls === "crossed" ? "ขีดฆ่า" : "“" + esc(cell.char) + "”"}`
-        : cell.cls === "empty" ? "ช่องว่าง" : `ระบบอ่าน “${esc(cell.char)}”${cell.cls === "crossed" ? " (ขีดฆ่า)" : ""} · มั่นใจ ${Math.round(cell.conf * 100)}%`}</div>
+        : cell.cls === "empty" ? "ช่องว่าง" : `ระบบอ่าน “${esc(cell.char)}”${cell.cls === "crossed" ? " (ขีดฆ่า)" : ""} ${cell.conf < Settings.get().lowConf ? " · ระบบไม่แน่ใจ" : ""}`}</div>
       <div class="row tight">
         ${opts.map((x) => `<button class="opt" data-v="${x}">${x}</button>`).join("")}
         <button class="ghost small" data-v="empty">ว่าง</button><button class="ghost small" data-v="crossed">ขีดฆ่า</button>
