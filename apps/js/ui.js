@@ -163,6 +163,24 @@ async function sheetImage(sheet) {
 // ---------- ส่วนที่ทุกหน้าใช้ ----------
 const Views = {};
 
+// ไอคอนเส้น (แทนอีโมจิ ให้หน้าตาเหมือนกันทุกเครื่อง)
+const ICONS = {
+  camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  image: '<rect x="3.5" y="4.5" width="17" height="15" rx="1.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 18l5-5 4 4 3-3 4 4"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  next: '<path d="M9 5l7 7-7 7"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  sheet: '<path d="M6 3.5h9l3 3v14H6z"/><path d="M9 9h6M9 12.5h6M9 16h4"/>',
+  teacher: '<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c.8-4 3.5-6 7-6s6.2 2 7 6"/>',
+  school: '<path d="M3 10l9-5 9 5"/><path d="M5 10v9h14v-9"/><path d="M10 19v-5h4v5"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="9.5" rx="1.5"/><path d="M8.5 10.5V8a3.5 3.5 0 017 0v2.5"/>',
+  eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  table: '<rect x="3.5" y="4.5" width="17" height="15" rx="1"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10"/>',
+};
+const ico = (name, cls = "") => `<svg class="ico ${cls}" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ""}</svg>`;
+
 const pill = (cls, text) => `<span class="pill ${cls}">${esc(text)}</span>`;
 const studentLabel = (s) => (s ? [s.no != null ? `เลขที่ ${s.no}` : "", s.name || s.sid].filter(Boolean).join(" · ") : "");
 
@@ -173,19 +191,6 @@ async function loadExamContext(examId) {
   const sheets = await Store.sheetsOf(exam.id);
   const rules = Settings.get();
   return { exam, classes, sheets, rules, sum: summarizeExam(exam, sheets, classes, rules) };
-}
-
-// ตรวจไฟล์ทีละแผ่น แล้วเก็บ (ถ้าตรวจไม่ได้ก็เก็บไว้พร้อมข้อความ error ให้ครูลองใหม่/ลบ)
-async function processFile(file, exam, onDone) {
-  const sheet = { id: uid(), examId: exam.id, fileName: file.name, createdAt: Date.now(), image: file };
-  try {
-    sheet.result = await Pipeline.run(file, exam);
-  } catch (err) {
-    sheet.error = err.message || String(err);
-  }
-  await Store.put("sheets", sheet);
-  onDone?.(sheet);
-  return sheet;
 }
 
 function setCell(cell, v) {

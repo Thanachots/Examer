@@ -47,6 +47,7 @@ function summarizeExam(exam, sheets, classes, rules) {
   const sheetInfos = sheets.map((sh) => {
     const sid = sh.studentId ?? sh.result?.student_id ?? "";
     const info = { sheet: sh, sid, student: null, grade: null, issues: [] };
+    if (sheetPending(sh)) { info.pending = true; return info; }
     if (sh.error) { info.issues.push({ kind: "error", text: sh.error }); return info; }
     info.grade = Grade.sheet(sh, exam, rules);
     if (info.grade.page > pages) info.issues.push({ kind: "page", text: `อ่านได้หน้า ${info.grade.page} แต่การสอบมี ${pages} หน้า` });
@@ -93,6 +94,7 @@ function summarizeExam(exam, sheets, classes, rules) {
     counts: {
       roster: roster.length,
       scanned: sheets.length,
+      pending: sheetInfos.filter((i) => i.pending).length,
       submitted: students.filter((s) => s.sheets.length).length,
       absent: students.filter((s) => s.status === "absent").length,
       reviewCells: sheetInfos.reduce((s, i) => s + (i.grade?.lowCells || 0), 0),
@@ -107,6 +109,84 @@ function summarizeExam(exam, sheets, classes, rules) {
 const STUDENT_STATUS = {
   absent: { text: "ยังไม่มีกระดาษ", cls: "muted" },
   partial: { text: "ขาดบางหน้า", cls: "warn" },
-  review: { text: "รอตรวจทาน", cls: "warn" },
-  done: { text: "เสร็จ", cls: "done" },
+  review: { text: "รอตรวจ/แก้", cls: "warn" },
+  done: { text: "เรียบร้อย", cls: "done" },
 };
+
+// ---------- ระบบโรงเรียนไทย ----------
+const EXAM_KINDS = { quiz: "คะแนนเก็บ", midterm: "สอบกลางภาค", final: "สอบปลายภาค" };
+const GRADE_LEVELS = ["ป.1", "ป.2", "ป.3", "ป.4", "ป.5", "ป.6", "ม.1", "ม.2", "ม.3", "ม.4", "ม.5", "ม.6"];
+
+// คะแนนดิบ → คะแนนที่บันทึกจริง (เช่น 17/20 ข้อ คิดเป็นคะแนนเก็บเต็ม 10 → 8.5) ปัดทศนิยม 1 ตำแหน่ง
+function recordedScore(score, max, weight) {
+  if (!weight || !max) return null;
+  return Math.round((score / max) * weight * 10) / 10;
+}
+
+const termLabel = (o) => (o?.term && o?.year ? `ภาคเรียนที่ ${o.term}/${o.year}` : "");
+
+// ---------- ส่งข้อมูลระหว่างฝ่ายวิชาการ ↔ ครู (ผ่านไฟล์ — ยังไม่มี server) ----------
+const Transfer = {
+  // ฝ่ายวิชาการ → ครู: ห้อง/รายชื่อ, รายวิชา, ข้อสอบกลาง, เกณฑ์ตรวจ
+  async schoolPackage(forTeacherId) {
+    const s = Settings.get();
+    const subjects = await Store.all("subjects");
+    const mySubjects = forTeacherId ? subjects.filter((x) => (x.teacherIds || []).includes(forTeacherId)) : subjects;
+    const exams = (await Store.all("exams")).filter((e) => e.central && (!forTeacherId || mySubjects.some((x) => x.id === e.subjectId)));
+    const teacher = forTeacherId ? await Store.get("teachers", forTeacherId) : null;
+    return {
+      app: "examer", type: "school-package", version: 1, createdAt: new Date().toISOString(),
+      school: { name: s.schoolName, year: s.year, term: s.term },
+      rules: { lowConf: s.lowConf, lowercase: s.lowercase, gap: s.gap, start: s.start, partial: s.partial },
+      teacher: teacher ? { id: teacher.id, name: teacher.name } : null,
+      classes: await Store.all("classes"), subjects: mySubjects, exams,
+    };
+  },
+
+  async importPackage(d) {
+    if (d.app !== "examer" || d.type !== "school-package") throw new Error("ไม่ใช่ไฟล์ข้อมูลจากฝ่ายวิชาการ");
+    for (const c of d.classes || []) await Store.put("classes", c);
+    for (const x of d.subjects || []) await Store.put("subjects", x);
+    for (const e of d.exams || []) {
+      const old = await Store.get("exams", e.id);
+      await Store.put("exams", { ...e, ...(old ? { sentAt: old.sentAt } : {}) }); // ข้อสอบกลาง: เฉลยจากโรงเรียน
+    }
+    const patch = { schoolName: d.school?.name || "", year: d.school?.year || Settings.get().year, term: d.school?.term || Settings.get().term, ...(d.rules || {}), rulesFromSchool: !!d.rules };
+    if (d.teacher?.name && !Settings.get().teacherName) patch.teacherName = d.teacher.name;
+    Settings.set(patch);
+    return { classes: (d.classes || []).length, subjects: (d.subjects || []).length, exams: (d.exams || []).length };
+  },
+
+  // ครู → ฝ่ายวิชาการ: คะแนนรายคนของการสอบ 1 ชุด
+  resultsFile(ctx) {
+    const { exam, classes, sum } = ctx;
+    const s = Settings.get();
+    return {
+      app: "examer", type: "results", version: 1, sentAt: new Date().toISOString(),
+      teacher: s.teacherName, school: s.schoolName,
+      exam: { id: exam.id, name: exam.name, subjectId: exam.subjectId || null, subject: exam.subject, subjectCode: exam.subjectCode,
+        grade: exam.grade || "", kind: exam.kind, weight: exam.weight || null, year: exam.year, term: exam.term, date: exam.date,
+        rooms: classes.map((c) => c.name), classIds: exam.classIds || [], central: !!exam.central },
+      students: sum.students.map((x) => ({
+        no: x.no, sid: x.sid, name: x.name, room: x.room, set: x.set,
+        score: x.sheets.length ? x.score : null, max: x.max || null,
+        recorded: x.sheets.length ? recordedScore(x.score, x.max, exam.weight) : null, status: x.status,
+      })),
+      pending: { problems: sum.counts.problems, reviewCells: sum.counts.reviewCells },
+    };
+  },
+
+  async importResults(d) {
+    if (d.app !== "examer" || d.type !== "results") throw new Error("ไม่ใช่ไฟล์ผลคะแนนจากครู");
+    await Store.put("submissions", { id: d.exam.id, ...d, importedAt: Date.now() });
+    return d;
+  },
+};
+
+async function readJsonFile(file) {
+  try {
+    return JSON.parse(await file.text());
+  } catch {
+    throw new Error("เปิดไฟล์ไม่ได้ — ต้องเป็นไฟล์ .json จาก Examer");
+  }
+}

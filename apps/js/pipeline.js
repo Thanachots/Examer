@@ -91,10 +91,10 @@ function mockRow(word) {
     if (r < 0.03) {
       row.push({ char: randLetter(), conf: 0.9, cls: "crossed", truth: "" });
       row.push({ char: ch, conf: 0.95, cls: "char", truth: ch });
-    } else if (r < 0.06) {
+    } else if (r < 0.045) {
       const wrong = CONFUSABLE[ch] || ch;
       row.push({ char: wrong, conf: 0.3 + rand() * 0.25, cls: "char", truth: ch, top3: [[wrong, 0.45], [ch, 0.4], [randLetter(), 0.05]] });
-    } else if (r < 0.08) {
+    } else if (r < 0.06) {
       row.push({ char: ch, conf: 0.85, cls: "char", truth: ch, lower: true });
     } else {
       row.push({ char: ch, conf: 0.8 + rand() * 0.2, cls: "char", truth: ch });

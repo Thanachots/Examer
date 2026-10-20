@@ -1,197 +1,139 @@
-// การสอบ — ขั้นตอนงาน ① เตรียม → ② สแกน → ③ ตรวจทาน → ④ คะแนน
+// ครู — การสอบ 1 ชุด: ① ถ่ายรูป → ② ตรวจ/แก้ → ③ คะแนน
+// (ข้อมูลการสอบ + เฉลย ตั้งครั้งเดียวในหน้า "สร้างการสอบ" ไม่นับเป็นขั้นตอน)
 
-const STATUS_TH = { right: "ถูก", partial: "ถูกบางส่วน", wrong: "ผิด", review: "รอตรวจทาน", nokey: "ไม่มีเฉลย" };
+const STATUS_TH = { right: "ถูก", partial: "ถูกบางส่วน", wrong: "ผิด", review: "รอตรวจ", nokey: "ไม่มีเฉลย" };
+const STEPS = [
+  ["photo", "ถ่ายรูป", "camera"],
+  ["check", "ตรวจ/แก้", "check"],
+  ["score", "คะแนน", "table"],
+];
+const LEGACY_STEP = { setup: "edit", scan: "photo", review: "check", scores: "score" };
 
-// ================= สร้าง / แก้ข้อมูลการสอบ =================
-function examInfoFields(exam, classes) {
-  return `
-    <div class="grid-fields">
-      <label class="span2">ชื่อการสอบ<input name="name" value="${esc(exam.name)}" required placeholder="เช่น สอบกลางภาค คำศัพท์บทที่ 3" /></label>
-      <label>วิชา<input name="subject" value="${esc(exam.subject)}" placeholder="ภาษาอังกฤษ" /></label>
-      <label>รหัสวิชา<input name="subjectCode" value="${esc(exam.subjectCode)}" placeholder="อ23101" /></label>
-      <label>ปีการศึกษา<input name="year" value="${esc(exam.year)}" inputmode="numeric" /></label>
-      <label>ภาคเรียน<select name="term">${["1", "2", "ฤดูร้อน"].map((t) => `<option ${exam.term === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
-      <label>วันที่สอบ<input type="date" name="date" value="${esc(exam.date)}" /></label>
-      <label>จำนวนหน้ากระดาษคำตอบ
-        <select name="pages">${[1, 2, 3, 4].map((n) => `<option value="${n}" ${exam.pages === n ? "selected" : ""}>${n} หน้า (${n * ROWS} ข้อ)</option>`).join("")}</select>
-      </label>
-    </div>
-    <fieldset class="rooms">
-      <legend>ห้องที่สอบ</legend>
-      ${classes.length ? classes.map((c) => `<label class="check"><input type="checkbox" name="classIds" value="${c.id}" ${(exam.classIds || []).includes(c.id) ? "checked" : ""} />${esc(c.name)} <span class="muted small">(${(c.students || []).length} คน)</span></label>`).join("")
-        : `<p class="muted small">ยังไม่มีห้องเรียน — ไม่เลือกก็ได้ (ระบบจะใช้รหัสบนกระดาษอย่างเดียว ไม่มีชื่อนักเรียน)</p>`}
-      <a href="#/class/new" class="small" id="add-class">+ เพิ่มห้องเรียนใหม่</a>
-    </fieldset>`;
+const hasAnyKey = (exam) => SETS.some((n) => (exam.keys?.[n] || []).some(Boolean));
+
+// ขั้นต่อไปที่ครูควรทำ — ใช้ทั้งหน้าแรกและในหน้าการสอบ
+function nextAction(exam, sum) {
+  const c = sum.counts;
+  const base = `#/exam/${exam.id}`;
+  if (!hasAnyKey(exam)) return { text: "ใส่เฉลย", href: `${base}/edit`, tone: "warn" };
+  if (!c.scanned) return { text: "ถ่ายรูปกระดาษคำตอบ", href: `${base}/photo`, tone: "primary" };
+  if (c.pending) return { text: `กำลังตรวจ… เหลือ ${c.pending} แผ่น`, href: `${base}/photo`, tone: "muted" };
+  const fix = c.problems + c.reviewCells;
+  if (fix) return { text: `ตรวจ/แก้ ${fix} จุด`, href: `${base}/check`, tone: "warn" };
+  if (c.roster && c.absent) return { text: `ยังขาด ${c.absent} คน — ถ่ายรูปเพิ่ม`, href: `${base}/photo`, tone: "primary", alt: { text: "ดูคะแนน", href: `${base}/score` } };
+  if (!exam.sentAt) return { text: "ส่งคะแนนให้ฝ่ายวิชาการ", href: `${base}/score`, tone: "primary" };
+  return { text: "ส่งแล้ว ดูคะแนน", href: `${base}/score`, tone: "done" };
 }
 
-function readExamInfo(form, exam) {
-  const fd = new FormData(form);
-  Object.assign(exam, {
-    name: fd.get("name").trim(), subject: fd.get("subject").trim(), subjectCode: fd.get("subjectCode").trim(),
-    year: fd.get("year").trim(), term: fd.get("term"), date: fd.get("date"), pages: Number(fd.get("pages")) || 1,
-    classIds: fd.getAll("classIds"),
-  });
-}
-
+// ================= สร้าง / แก้ไขการสอบ =================
 Views.examNew = async (root) => {
-  const classes = (await Store.all("classes")).sort((a, b) => String(a.name).localeCompare(String(b.name), "th"));
-  const exam = { name: "", subject: "", subjectCode: "", year: String(new Date().getFullYear() + 543), term: "2", date: new Date().toISOString().slice(0, 10), pages: 1, classIds: [] };
-  root.innerHTML = `
-    <div class="page-head"><div><a class="back" href="#/">← การสอบ</a><h2>สร้างการสอบ</h2></div></div>
-    <form id="f" class="card form narrow">${examInfoFields(exam, classes)}
-      <div class="row"><span class="spacer"></span><button class="primary" type="submit">ถัดไป: ใส่เฉลย →</button></div>
-    </form>`;
-  $("#add-class").onclick = () => sessionStorageSet("examer.returnTo", "#/exam/new");
-  $("#f").onsubmit = async (e) => {
-    e.preventDefault();
-    readExamInfo(e.target, exam);
-    Object.assign(exam, { id: uid(), keys: { 1: [], 2: [], 3: [] }, createdAt: Date.now() });
-    await Store.put("exams", exam);
-    location.hash = `#/exam/${exam.id}/setup`;
-  };
-  $("#f input").focus();
+  const s = Settings.get();
+  const exam = { name: "", kind: "quiz", classIds: [], pages: 1, keys: { 1: [], 2: [], 3: [] }, date: new Date().toISOString().slice(0, 10), year: s.year, term: s.term };
+  await renderExamForm(root, exam, {
+    title: "สร้างการสอบ", back: "#/",
+    onSaved: (e) => (location.hash = `#/exam/${e.id}/photo`),
+  });
 };
 
-// ================= พื้นที่ทำงานของการสอบ =================
+Views.examEdit = async (root, id) => {
+  const exam = await Store.get("exams", id);
+  if (!exam) return (root.innerHTML = `<div class="empty-state"><h3>ไม่พบการสอบ</h3><a href="#/">กลับหน้าแรก</a></div>`);
+  const isAdmin = Settings.get().role === "admin";
+  await renderExamForm(root, exam, {
+    title: exam.central ? "ข้อสอบกลาง" : "แก้ไขการสอบและเฉลย",
+    back: isAdmin ? "#/central" : `#/exam/${id}`,
+    central: !!exam.central,
+    readonlyKey: !!exam.central && !isAdmin,
+    onSaved: (e) => (location.hash = isAdmin ? "#/central" : `#/exam/${e.id}`),
+    onDelete: exam.central && !isAdmin ? null : async () => { await Store.deleteExam(id); location.hash = isAdmin ? "#/central" : "#/"; },
+  });
+};
+
+// ================= พื้นที่ทำงาน 3 ขั้น =================
+function stepperHTML(exam, sum, step) {
+  const c = sum.counts;
+  const fix = c.problems + c.reviewCells;
+  const sub = {
+    photo: c.pending ? `กำลังตรวจ ${c.pending} แผ่น` : c.roster ? `${c.submitted}/${c.roster} คน` : `${c.scanned} แผ่น`,
+    check: c.scanned ? (fix ? `ต้องแก้ ${fix} จุด` : "เรียบร้อย") : "—",
+    score: exam.sentAt ? "ส่งแล้ว" : c.graded ? `${c.graded} คน` : "—",
+  };
+  const st = {
+    photo: c.pending ? "part" : c.scanned ? (c.absent ? "part" : "ok") : "todo",
+    check: !c.scanned ? "todo" : c.problems ? "bad" : fix ? "part" : "ok",
+    score: exam.sentAt ? "ok" : "todo",
+  };
+  return `<nav class="stepper three">${STEPS.map(([k, label], i) => `
+    <a class="step ${k === step ? "active" : ""} ${st[k]}" href="#/exam/${exam.id}/${k}">
+      <span class="step-n">${st[k] === "ok" ? ico("check") : i + 1}</span>
+      <span class="step-t"><b>${label}</b><small>${esc(sub[k])}</small></span>
+    </a>`).join("")}</nav>`;
+}
+
 Views.exam = async (root, id, step) => {
+  step = LEGACY_STEP[step] || step;
+  if (step === "edit") return Views.examEdit(root, id);
   const ctx = await loadExamContext(id);
   if (!ctx) return (root.innerHTML = `<div class="empty-state"><h3>ไม่พบการสอบ</h3><a href="#/">กลับหน้าแรก</a></div>`);
   const { exam, classes, sum } = ctx;
   const c = sum.counts;
-  const hasKey = SETS.some((n) => (exam.keys?.[n] || []).some(Boolean));
-  step ||= !hasKey ? "setup" : !c.scanned ? "scan" : c.problems || c.reviewCells ? "review" : "scores";
-
-  const steps = [
-    ["setup", "เตรียม", hasKey ? "ใส่เฉลยแล้ว" : "ยังไม่มีเฉลย", hasKey ? "ok" : "todo"],
-    ["scan", "สแกน", c.roster ? `${c.submitted}/${c.roster} คน` : `${c.scanned} แผ่น`, c.scanned ? (c.absent ? "part" : "ok") : "todo"],
-    ["review", "ตรวจทาน", c.problems || c.reviewCells ? `${c.problems ? c.problems + " ปัญหา · " : ""}${c.reviewCells} ช่อง` : c.scanned ? "เรียบร้อย" : "—", c.problems ? "bad" : c.reviewCells ? "part" : c.scanned ? "ok" : "todo"],
-    ["scores", "คะแนน", c.graded ? `${c.graded} คน` : "—", c.graded && !c.problems && !c.reviewCells ? "ok" : "todo"],
-  ];
+  if (!step) step = !c.scanned || c.pending ? "photo" : c.problems || c.reviewCells ? "check" : "score";
 
   root.innerHTML = `
-    <div class="page-head">
+    <div class="page-head exam-head">
       <div>
-        <a class="back" href="#/">← การสอบ</a>
+        <a class="back" href="#/">${ico("back")}การสอบของฉัน</a>
         <h2>${esc(exam.name)}</h2>
-        <p class="muted">${esc([[exam.subjectCode, exam.subject].filter(Boolean).join(" "), classes.map((x) => x.name).join(", "), exam.term && exam.year ? `ภาค ${exam.term}/${exam.year}` : ""].filter(Boolean).join(" · "))}</p>
+        <p class="muted">${esc([exam.subjectCode, classes.map((x) => x.name).join(", "), EXAM_KINDS[exam.kind]].filter(Boolean).join(" · "))}
+          ${exam.central ? pill("muted", "ข้อสอบกลาง") : ""}</p>
       </div>
+      <a class="btn ghost" href="#/exam/${id}/edit">${exam.central ? "ดูเฉลย" : "แก้ไขเฉลย/ข้อมูล"}</a>
     </div>
-    <nav class="stepper">${steps.map(([k, label, sub, st], i) => `
-      <a class="step ${k === step ? "active" : ""} ${st}" href="#/exam/${id}/${k}">
-        <span class="step-n">${st === "ok" ? "✓" : i + 1}</span>
-        <span class="step-t"><b>${label}</b><small>${esc(sub)}</small></span>
-      </a>`).join("")}</nav>
+    ${stepperHTML(exam, sum, step)}
     <div id="pane"></div>`;
 
   const pane = $("#pane");
-  if (step === "setup") return paneSetup(pane, ctx);
-  if (step === "scan") return paneScan(pane, ctx);
-  if (step === "review") return paneReview(pane, ctx);
-  if (step === "scores") return paneScores(pane, ctx);
+  if (step === "photo") return panePhoto(pane, ctx);
+  if (step === "check") return paneCheck(pane, ctx);
+  return paneScore(pane, ctx);
 };
 
-// ---------- ① เตรียม ----------
-async function paneSetup(pane, { exam }) {
-  const allClasses = (await Store.all("classes")).sort((a, b) => String(a.name).localeCompare(String(b.name), "th"));
-  let set = 1;
-  const pages = () => Number($('[name="pages"]').value) || 1;
-  const keys = Object.fromEntries(SETS.map((n) => [n, [...(exam.keys?.[n] || [])]]));
-
-  pane.innerHTML = `
-    <form id="ef" class="card form">
-      <h3>ข้อมูลการสอบ</h3>
-      ${examInfoFields(exam, allClasses)}
-      <h3>เฉลย</h3>
-      <p class="muted small">ข้อละ 1 คำ ตัวอักษร A–Z ไม่เกิน 20 ตัว · ข้อที่เว้นว่างไม่นับคะแนน · ใช้ชุดเดียวก็ได้ ชุดที่ไม่ใช้ปล่อยว่าง</p>
-      <div class="set-tabs">${SETS.map((n) => `<button type="button" class="set-tab ${n === 1 ? "active" : ""}" data-set="${n}">ชุดที่ ${n} <span class="count" data-cnt="${n}"></span></button>`).join("")}</div>
-      <div id="keys"></div>
-      <details class="paste-key"><summary>วางเฉลยทั้งชุดทีเดียว</summary>
-        <p class="muted small">บรรทัดละ 1 ข้อ เรียงจากข้อ 1 (บรรทัดว่าง = ข้อที่ไม่มีเฉลย)</p>
-        <textarea id="kpaste" rows="5"></textarea>
-        <button type="button" id="kapply" class="ghost small">ใส่ในชุดที่เลือก</button>
-      </details>
-      <div class="row">
-        <button type="button" id="k-copy" class="ghost">คัดลอกจากชุดที่ 1</button>
-        <button type="button" id="k-clear" class="ghost">ล้างชุดนี้</button>
-        <span class="spacer"></span>
-        <button type="button" id="del-exam" class="ghost danger">ลบการสอบ</button>
-        <button class="primary" type="submit">บันทึก</button>
-      </div>
-    </form>`;
-
-  $("#add-class").onclick = () => sessionStorageSet("examer.returnTo", `#/exam/${exam.id}/setup`);
-  const box = $("#keys");
-  const counts = () => SETS.forEach((n) => { $(`[data-cnt="${n}"]`).textContent = keys[n].slice(0, pages() * ROWS).filter(Boolean).length || ""; });
-  const render = () => {
-    let html = "";
-    for (let p = 1; p <= pages(); p++) {
-      if (pages() > 1) html += `<div class="key-page">หน้า ${p}</div>`;
-      html += `<div class="key">` + Array.from({ length: ROWS }, (_, j) => {
-        const i = (p - 1) * ROWS + j;
-        return `<label><b>${i + 1}</b><input data-q="${i}" maxlength="${COLS}" value="${esc(keys[set][i] || "")}" autocomplete="off" spellcheck="false" autocapitalize="characters" /></label>`;
-      }).join("") + `</div>`;
-    }
-    box.innerHTML = html;
-    $$("input", box).forEach((el) => {
-      el.addEventListener("input", () => { el.value = el.value.toUpperCase().replace(/[^A-Z]/g, ""); keys[set][el.dataset.q] = el.value; counts(); });
-      el.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); const n = $(`[data-q="${+el.dataset.q + 1}"]`, box); if (n) n.focus(); } });
-    });
-    counts();
-  };
-  render();
-  $('[name="pages"]').onchange = render;
-  $$(".set-tab").forEach((b) => (b.onclick = () => { set = Number(b.dataset.set); $$(".set-tab").forEach((x) => x.classList.toggle("active", x === b)); render(); }));
-  $("#k-copy").onclick = () => { keys[set] = [...keys[1]]; render(); };
-  $("#k-clear").onclick = () => { keys[set] = []; render(); };
-  $("#kapply").onclick = () => {
-    const lines = $("#kpaste").value.split(/\r?\n/).map((l) => l.toUpperCase().replace(/[^A-Z]/g, "").slice(0, COLS));
-    while (lines.length && !lines[lines.length - 1]) lines.pop();
-    keys[set] = lines.slice(0, 4 * ROWS);
-    $("#kpaste").value = "";
-    render();
-    toast(`ใส่เฉลย ${lines.filter(Boolean).length} ข้อในชุดที่ ${set}`);
-  };
-  armButton($("#del-exam"), "กดอีกครั้งเพื่อลบทั้งการสอบ", async () => { await Store.deleteExam(exam.id); location.hash = "#/"; });
-
-  $("#ef").onsubmit = async (e) => {
-    e.preventDefault();
-    readExamInfo(e.target, exam);
-    exam.keys = Object.fromEntries(SETS.map((n) => [n, Array.from({ length: exam.pages * ROWS }, (_, i) => (keys[n][i] || "").trim())]));
-    await Store.put("exams", exam);
-    toast("บันทึกแล้ว — คะแนนคำนวณใหม่อัตโนมัติ");
-    location.hash = `#/exam/${exam.id}/scan`;
-  };
-}
-
-// ---------- ② สแกน ----------
-function paneScan(pane, { exam, sum }) {
+// ---------- ① ถ่ายรูป ----------
+function panePhoto(pane, { exam, sum }) {
   const live = Pipeline.isLive();
   pane.innerHTML = `
-    ${live ? `<div id="eng" class="engine-line"></div>` : `<div class="notice">โหมดจำลอง — ผลอ่านเป็นข้อมูลสุ่ม · <a href="#/settings">เปลี่ยนในตั้งค่า</a></div>`}
+    ${hasAnyKey(exam) ? "" : `<div class="notice">ยังไม่ได้ใส่เฉลย — ถ่ายรูปได้ แต่จะยังไม่มีคะแนน · <a href="#/exam/${exam.id}/edit">ใส่เฉลย</a></div>`}
+    ${live ? `<div id="eng" class="engine-line"></div>` : `<div class="notice">โหมดทดลอง — ผลอ่านเป็นข้อมูลสุ่ม · <a href="#/settings">เปลี่ยนในตั้งค่า</a></div>`}
     <div class="scan-actions">
       <label class="scan-btn camera">
         <input id="cam" type="file" accept="image/*" capture="environment" hidden />
-        <span class="scan-ico">📷</span><b>ถ่ายรูปกระดาษ</b><small>ใช้กล้องมือถือ ทีละแผ่น</small>
+        <span class="scan-ico">${ico("camera")}</span><b>ถ่ายรูปกระดาษ</b><small>ถ่ายทีละแผ่น ถ่ายต่อได้เลยไม่ต้องรอ</small>
       </label>
       <label id="drop" class="scan-btn">
         <input id="files" type="file" accept="image/*" multiple hidden />
-        <span class="scan-ico">📁</span><b>อัปโหลดไฟล์</b><small>เลือก/ลากมาวางได้หลายแผ่น (JPG, PNG)</small>
+        <span class="scan-ico">${ico("image")}</span><b>เลือกรูปจากเครื่อง</b><small>เลือกหลายรูปพร้อมกันได้ · ลากมาวางก็ได้</small>
       </label>
     </div>
-    <p class="muted small tips">เคล็ดลับ: วางกระดาษบนพื้นสีเข้ม ให้เห็นสี่เหลี่ยมดำครบ 3 มุม · แสงสม่ำเสมอ ไม่มีเงามือ · ถ่ายตรงๆ ไม่ต้องเต็มจอ</p>
-    <div id="progress" class="progress-line" hidden><div class="progress"><i></i></div><span class="small mono" id="pg-t"></span></div>
+    <details class="tips"><summary>ถ่ายอย่างไรให้ตรวจแม่น</summary>
+      <ul>
+        <li>เห็น<b>สี่เหลี่ยมดำครบ 3 มุม</b> (ล่างซ้าย, ล่างขวา, กล่องเลข 2 มุมขวาบน)</li>
+        <li>วางกระดาษบนโต๊ะสีเข้ม แสงสม่ำเสมอ ไม่มีเงามือหรือเงาโทรศัพท์</li>
+        <li>ถ่ายจากด้านบนตรงๆ ไม่ต้องเต็มจอ เอียงเล็กน้อยได้</li>
+      </ul>
+    </details>
+    <div id="qline" class="engine-line" hidden></div>
     <div id="feed" class="feed"></div>
-    ${sum.sheets.length ? `<h3 class="section-h">กระดาษทั้งหมด (${sum.sheets.length} แผ่น)</h3>${sheetTable(sum.sheets)}` : ""}`;
+    <div id="sheet-list"></div>
+    <div id="next" class="next-cta"></div>`;
 
-  // โหลดโมเดลล่วงหน้า (ครั้งแรก ~40 MB) แสดงความคืบหน้า
   const showEngine = () => {
     const el = $("#eng");
     if (!el) return;
     const st = BrowserEngine.state();
     el.className = "engine-line " + st.status;
-    el.innerHTML = st.status === "ready" ? `<span class="dot ok"></span> โมเดลพร้อม — ภาพตรวจในเครื่องนี้ ไม่ถูกส่งออกไปไหน`
-      : st.status === "error" ? `<span class="dot bad"></span> โหลดโมเดลไม่สำเร็จ: ${esc(st.error)} <button class="ghost small" id="eng-retry">ลองใหม่</button>`
-      : `<span class="dot warn"></span> ${esc(st.text)} <div class="progress"><i style="width:${Math.round(st.p * 100)}%"></i></div>`;
+    el.innerHTML = st.status === "ready" ? `<span class="dot ok"></span> ระบบตรวจพร้อม — รูปตรวจในเครื่องนี้ ไม่ถูกส่งออกไปไหน`
+      : st.status === "error" ? `<span class="dot bad"></span> เตรียมระบบตรวจไม่สำเร็จ: ${esc(st.error)} <button class="ghost small" id="eng-retry">ลองใหม่</button>`
+      : `<span class="dot warn"></span> กำลังเตรียมระบบตรวจ (ครั้งแรกใช้เวลาสักครู่) <div class="progress"><i style="width:${Math.round(st.p * 100)}%"></i></div>`;
     const r = $("#eng-retry");
     if (r) r.onclick = () => BrowserEngine.load().catch(() => {});
   };
@@ -202,54 +144,80 @@ function paneScan(pane, { exam, sum }) {
   }
 
   const feed = $("#feed");
-  const addFeed = (sheet) => {
-    const s2 = summarizeExam(exam, [sheet], [], Settings.get()); // แค่อ่านผลแผ่นนี้
-    const info = s2.sheets[0];
+  const renderList = (sum2) => {
+    $("#sheet-list").innerHTML = sum2.sheets.length
+      ? `<details class="all-sheets" ${sum2.sheets.length <= 8 ? "open" : ""}><summary>กระดาษทั้งหมด ${sum2.sheets.length} แผ่น</summary>${sheetTable(sum2.sheets)}</details>` : "";
+    bindSheetTable();
+    const na = nextAction(exam, sum2);
+    $("#next").innerHTML = sum2.counts.scanned && !sum2.counts.pending && !na.href.endsWith("/photo")
+      ? `<a class="btn primary big" href="${na.href}">${esc(na.text)}</a>` : "";
+  };
+  renderList(sum);
+
+  // ผลแต่ละแผ่นขึ้นทันที → แผ่นไหนอ่านรหัสไม่ได้ ถ่ายใหม่ตอนนั้นได้เลย
+  const addFeed = (info) => {
     const el = document.createElement("a");
-    el.href = `#/sheet/${sheet.id}`;
-    el.className = "feed-item " + (sheet.error ? "bad" : "");
-    el.innerHTML = sheet.error
-      ? `<span class="dot bad"></span><span><b>${esc(sheet.fileName)}</b> — ตรวจไม่ได้: ${esc(sheet.error)}</span>`
-      : `<span class="dot ${info.grade.lowCells ? "warn" : "ok"}"></span><span>รหัส <b class="mono">${esc(info.sid || "?")}</b> · ชุด ${info.grade.set} · หน้า ${info.grade.page}</span><span class="mono">${info.grade.max ? fmt(info.grade.score) + "/" + info.grade.max : ""}</span>`;
+    el.href = `#/sheet/${info.sheet.id}`;
+    const bad = info.sheet.error || info.issues.length;
+    el.className = "feed-item " + (bad ? "bad" : "");
+    const who = info.student ? esc(studentLabel(info.student)) : `เลขประจำตัว <b class="mono">${esc(info.sid || "?")}</b>`;
+    el.innerHTML = info.sheet.error
+      ? `<span class="dot bad"></span><span>ตรวจไม่ได้ — ${esc(info.sheet.error)}</span><span class="small">ถ่ายใหม่</span>`
+      : `<span class="dot ${bad ? "bad" : info.grade.lowCells ? "warn" : "ok"}"></span><span>${who}${info.issues.length ? ` · <b>${esc(info.issues[0].text)}</b>` : ""}</span><span class="mono">${info.grade.max ? fmt(info.grade.score) + "/" + info.grade.max : ""}</span>`;
     feed.prepend(el);
   };
 
+  const showQueue = (st) => {
+    const el = $("#qline");
+    if (!el) return;
+    el.hidden = !st.pending;
+    el.innerHTML = `<span class="dot warn"></span> กำลังตรวจ… เหลือ ${st.pending} แผ่น <span class="muted small">— ถ่ายแผ่นต่อไปหรือไปหน้าอื่นได้เลย</span>`;
+  };
+  showQueue(ScanQueue.state());
+  Page.onLeave(ScanQueue.onChange(async (st, done) => {
+    showQueue(st);
+    if (!done || done.examId !== exam.id) return;
+    const ctx = await loadExamContext(exam.id);
+    if (!ctx) return;
+    const info = ctx.sum.sheets.find((i) => i.sheet.id === done.id);
+    if (info) addFeed(info);
+    renderList(ctx.sum);
+    const nav = $(".stepper");
+    if (nav) nav.outerHTML = stepperHTML(ctx.exam, ctx.sum, "photo");
+  }));
+
   async function upload(files) {
-    files = files.filter((f) => f.type.startsWith("image/") || /\.(jpe?g|png)$/i.test(f.name));
-    if (!files.length) return toast("กรุณาเลือกไฟล์ภาพ");
-    const bar = $("#progress");
-    bar.hidden = false;
-    for (let i = 0; i < files.length; i++) {
-      $("#pg-t").textContent = `กำลังตรวจ ${i + 1}/${files.length}`;
-      await processFile(files[i], exam, addFeed);
-      $(".progress i", bar).style.width = pct(i + 1, files.length) + "%";
-    }
-    $("#pg-t").textContent = `เสร็จ ${files.length} แผ่น`;
-    setTimeout(() => router(), files.length > 1 ? 900 : 600);
+    files = files.filter((f) => f.type.startsWith("image/") || /\.(jpe?g|png|heic|heif)$/i.test(f.name));
+    if (!files.length) return toast("กรุณาเลือกรูปภาพ");
+    await ScanQueue.add(files, exam);
+    toast(files.length > 1 ? `รับ ${files.length} แผ่นแล้ว กำลังตรวจ` : "รับแล้ว ถ่ายแผ่นต่อไปได้เลย");
+    const ctx = await loadExamContext(exam.id);
+    if (ctx) renderList(ctx.sum);
   }
 
   const drop = $("#drop");
   ["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
   ["dragleave", "drop"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
   drop.addEventListener("drop", (e) => upload([...e.dataTransfer.files]));
-  $("#files").onchange = (e) => upload([...e.target.files]);
-  $("#cam").onchange = (e) => upload([...e.target.files]);
-  bindSheetTable();
+  $("#files").onchange = (e) => { upload([...e.target.files]); e.target.value = ""; };
+  $("#cam").onchange = (e) => { upload([...e.target.files]); e.target.value = ""; };
 }
 
 function sheetTable(infos) {
+  const curr = ScanQueue.state().current;
   return `<table class="table">
-    <thead><tr><th>นักเรียน</th><th class="hide-sm">รหัสที่อ่านได้</th><th>ชุด/หน้า</th><th>คะแนน</th><th>สถานะ</th><th></th></tr></thead>
+    <thead><tr><th>นักเรียน</th><th class="hide-sm">เลขประจำตัวที่อ่านได้</th><th class="hide-sm">ชุด/หน้า</th><th>คะแนน</th><th>สถานะ</th><th></th></tr></thead>
     <tbody>${infos.map((i) => {
       const g = i.grade;
-      const st = i.sheet.error ? pill("bad", "ตรวจไม่ได้") : i.issues.length ? pill("bad", i.issues[0].text) : g.lowCells ? pill("warn", `รอตรวจทาน ${g.lowCells}`) : pill("done", "เสร็จ");
+      const st = i.pending ? pill("muted", i.sheet.id === curr ? "กำลังตรวจ…" : "รอคิว")
+        : i.sheet.error ? pill("bad", "ตรวจไม่ได้") : i.issues.length ? pill("bad", i.issues[0].text) : g.lowCells ? pill("warn", `แก้ ${g.lowCells} จุด`) : pill("done", "เรียบร้อย");
       return `<tr data-href="#/sheet/${i.sheet.id}">
-        <td>${i.student ? esc(studentLabel(i.student)) : `<span class="muted">—</span>`}</td>
+        <td>${i.student ? esc(studentLabel(i.student)) : `<span class="muted">${i.pending ? "—" : "ไม่ทราบชื่อ"}</span>`}</td>
         <td class="mono hide-sm">${esc(i.sid) || "—"}</td>
-        <td>${g ? `${g.set} / ${g.page}` : "—"}</td>
+        <td class="hide-sm">${g ? `${g.set} / ${g.page}` : "—"}</td>
         <td class="mono"><b>${g && g.max ? fmt(g.score) + "/" + g.max : "–"}</b></td>
         <td>${st}</td>
-        <td><button class="icon" data-del="${i.sheet.id}" title="ลบแผ่นนี้">✕</button></td>
+        <td><button class="icon" data-del="${i.sheet.id}" title="ลบแผ่นนี้" aria-label="ลบแผ่นนี้">${ico("x")}</button></td>
       </tr>`;
     }).join("")}</tbody></table>`;
 }
@@ -258,8 +226,8 @@ function bindSheetTable() {
   $$("[data-del]").forEach((b) => armButton(b, "ลบ?", async () => { await Store.del("sheets", b.dataset.del); router(); }));
 }
 
-// ---------- ③ ตรวจทาน ----------
-async function paneReview(pane, { exam, sum, rules }) {
+// ---------- ② ตรวจ/แก้ ----------
+async function paneCheck(pane, { exam, sum, rules }) {
   const problems = sum.problems;
   const items = [];
   sum.sheets.forEach((info) => {
@@ -268,66 +236,71 @@ async function paneReview(pane, { exam, sum, rules }) {
       row.forEach((cell, c) => { if (cell.cls === "char" && cell.conf < rules.lowConf) items.push({ info, r, c }); })
     );
   });
+  const allList = sum.sheets.length ? `<details class="all-sheets"><summary>ดูกระดาษทีละแผ่น (${sum.sheets.length} แผ่น)</summary>${sheetTable(sum.sheets)}</details>` : "";
 
   if (!problems.length && !items.length) {
-    pane.innerHTML = `<div class="empty-state"><h3>ไม่มีอะไรต้องตรวจทาน</h3>
-      <p class="muted">${sum.sheets.length ? "ทุกแผ่นจับคู่นักเรียนได้ และทุกช่องมีความมั่นใจพอ" : "ยังไม่มีกระดาษ"}</p>
-      <a class="btn primary" href="#/exam/${exam.id}/${sum.sheets.length ? "scores" : "scan"}">${sum.sheets.length ? "ไปดูคะแนน →" : "ไปสแกน →"}</a></div>`;
+    pane.innerHTML = `<div class="empty-state ok-state"><div class="big-ico">${ico("check")}</div><h3>${sum.sheets.length ? "ไม่มีอะไรต้องแก้" : "ยังไม่มีกระดาษ"}</h3>
+      <p class="muted">${sum.sheets.length ? (sum.counts.pending ? `ยังตรวจไม่เสร็จอีก ${sum.counts.pending} แผ่น` : "ทุกแผ่นรู้ว่าเป็นของใคร และระบบอ่านได้ชัดทุกช่อง") : "เริ่มจากถ่ายรูปกระดาษคำตอบ"}</p>
+      <a class="btn primary big" href="#/exam/${exam.id}/${sum.sheets.length ? "score" : "photo"}">${sum.sheets.length ? "ไปดูคะแนน" : "ไปถ่ายรูป"}</a></div>${allList}`;
+    bindSheetTable();
     return;
   }
 
   const unclaimed = sum.students.filter((s) => s.status === "absent" || s.missingPages?.length);
   pane.innerHTML = `
     ${problems.length ? `<section class="card">
-      <h3>กระดาษที่มีปัญหา <span class="count bad">${problems.length}</span></h3>
+      <h3>กระดาษที่ต้องจัดการ <span class="count bad">${problems.length}</span></h3>
+      <p class="muted small">เลือกว่าเป็นของนักเรียนคนไหน หรือถ่ายใหม่ถ้ารูปไม่ชัด</p>
       <div class="problems">${problems.map((p) => `
         <div class="problem" data-id="${p.sheet.id}">
-          <a class="thumb" href="#/sheet/${p.sheet.id}"><canvas></canvas></a>
+          <a class="thumb" href="#/sheet/${p.sheet.id}" title="ดูรูปเต็ม"><canvas></canvas></a>
           <div class="p-info">
             <b>${esc(p.issues.map((i) => i.text).join(" · "))}</b>
-            <span class="muted small">${esc(p.sheet.fileName)}${p.grade ? ` · ชุด ${p.grade.set} หน้า ${p.grade.page} · ${fmt(p.grade.score)}/${p.grade.max}` : ""}</span>
+            <span class="muted small">${p.grade ? `คะแนน ${fmt(p.grade.score)}/${p.grade.max}` : esc(p.sheet.fileName)}</span>
           </div>
           <div class="p-act">
             ${p.sheet.error ? `<button class="ghost" data-retry>ลองตรวจใหม่</button>`
               : p.issues.some((i) => i.kind === "id" || i.kind === "dup" || i.kind === "idconf") && sum.counts.roster ? `
-              <select data-assign><option value="">— เลือกนักเรียน —</option>
+              <select data-assign aria-label="เลือกนักเรียน"><option value="">— เป็นของใคร? —</option>
                 ${unclaimed.map((s) => `<option value="${esc(s.sid)}">${esc(studentLabel(s))}${s.room ? " (" + esc(s.room) + ")" : ""}</option>`).join("")}
-                <option disabled>──────</option>
-                ${sum.students.filter((s) => !unclaimed.includes(s)).map((s) => `<option value="${esc(s.sid)}">${esc(studentLabel(s))} · มีกระดาษแล้ว</option>`).join("")}
+                <option disabled>── มีกระดาษแล้ว ──</option>
+                ${sum.students.filter((s) => !unclaimed.includes(s)).map((s) => `<option value="${esc(s.sid)}">${esc(studentLabel(s))}</option>`).join("")}
               </select>`
               : p.issues.some((i) => i.kind === "id" || i.kind === "idconf") ? `
-              <input data-typeid class="mono" placeholder="พิมพ์รหัสนักเรียน" inputmode="numeric" value="${esc(p.sid)}" size="12" />
+              <input data-typeid class="mono" placeholder="เลขประจำตัว" inputmode="numeric" value="${esc(p.sid)}" size="10" />
               <button class="ghost" data-saveid>บันทึก</button>` : ""}
-            <button class="ghost danger" data-remove>ลบแผ่น</button>
+            <button class="ghost danger" data-remove>ลบ</button>
           </div>
         </div>`).join("")}</div>
     </section>` : ""}
 
     ${items.length ? `<section class="card">
-      <h3>ช่องที่ระบบไม่มั่นใจ <span class="count warn" id="left">${items.length}</span></h3>
-      <p class="muted small">ดูภาพลายมือ แล้วพิมพ์ตัวที่ถูก · <kbd>Enter</kbd> ยืนยัน · <kbd>-</kbd> = ขีดฆ่า · ลบให้ว่าง = ช่องว่าง · กดตัวเลือกด้านขวาก็ได้</p>
+      <h3>ตัวอักษรที่ระบบไม่แน่ใจ <span class="count warn" id="left">${items.length}</span></h3>
+      <p class="muted small">ดูลายมือในรูป แล้วแตะตัวที่ถูก · ถ้าไม่มีให้เลือก พิมพ์เองแล้วกดยืนยัน · ช่องที่ขีดฆ่า กด “ขีดฆ่า”</p>
       <div class="queue">${items.map((it, i) => {
         const row = it.info.sheet.result.reads[it.r];
         const cell = row[it.c];
         const ctxWord = row.map((c2, j) => c2.cls === "empty" ? "" : `<span class="${j === it.c ? "hl" : c2.cls === "crossed" ? "x" : ""}">${esc(c2.char)}</span>`).join("");
         const g = it.info.grade.rows[it.r];
-        // ตัวเลือก = ผลอ่านอันดับ 1–3 ของโมเดล (ไม่ใช้เฉลยช่วยเดา เพื่อไม่ให้ชี้นำครู)
+        // ตัวเลือก = ผลอ่านอันดับ 1–3 ของระบบ (ไม่เอาเฉลยมาช่วยเดา เพื่อไม่ให้ชี้นำครู)
         const opts = [...new Set([cell.char, ...(cell.top3 || []).map((t) => t[0])])].filter((x) => /^[A-Z]$/.test(x)).slice(0, 3);
         return `<div class="q-item" data-i="${i}">
           <div class="q-crop"></div>
           <div class="q-info">
-            <div><b>${esc(it.info.student ? studentLabel(it.info.student) : "รหัส " + (it.info.sid || "?"))}</b> <span class="muted small">· ข้อ ${g.q} ช่อง ${it.c + 1}</span></div>
+            <div><b>${esc(it.info.student ? studentLabel(it.info.student) : "เลขประจำตัว " + (it.info.sid || "?"))}</b></div>
+            <div class="muted small">ข้อ ${g.q} · ตัวที่ ${it.c + 1} ของคำ</div>
             <div class="ctx mono">${ctxWord}</div>
-            <div class="muted small">ระบบอ่าน “${esc(cell.char)}” · มั่นใจ ${Math.round(cell.conf * 100)}%</div>
           </div>
-          <div class="q-opts">${opts.map((o) => `<button type="button" class="opt" data-v="${o}">${o}</button>`).join("")}</div>
-          <input class="q-input mono" maxlength="1" value="${esc(cell.char)}" aria-label="ตัวอักษรที่ถูกต้อง" autocapitalize="characters" />
-          <button class="primary q-ok">ยืนยัน</button>
+          <div class="q-opts">${opts.map((o) => `<button type="button" class="opt" data-v="${o}">${o}</button>`).join("")}
+            <button type="button" class="opt small-opt" data-v="-" title="ช่องนี้ถูกขีดฆ่า">ขีดฆ่า</button></div>
+          <div class="q-typed"><input class="q-input mono" maxlength="1" value="" placeholder="?" aria-label="พิมพ์ตัวอักษรที่ถูก" autocapitalize="characters" />
+          <button class="primary q-ok" aria-label="ยืนยัน">${ico("check")}</button></div>
         </div>`;
       }).join("")}</div>
-    </section>` : ""}`;
+    </section>` : ""}
+    ${allList}`;
+  bindSheetTable();
 
-  // ภาพย่อของแผ่นที่มีปัญหา
   for (const el of $$(".problem")) {
     const p = problems.find((x) => x.sheet.id === el.dataset.id);
     const img = await sheetImage(p.sheet);
@@ -341,33 +314,28 @@ async function paneReview(pane, { exam, sum, rules }) {
       typed.addEventListener("keydown", (e) => { if (e.key === "Enter") saveId(); });
     }
     const retry = $("[data-retry]", el);
-    if (retry) retry.onclick = async () => {
-      retry.disabled = true; retry.textContent = "กำลังตรวจ…";
-      try { p.sheet.result = await Pipeline.run(p.sheet.image, exam); delete p.sheet.error; }
-      catch (e) { p.sheet.error = e.message; }
-      await Store.put("sheets", p.sheet); router();
-    };
+    if (retry) retry.onclick = async () => { await ScanQueue.retry(p.sheet); toast("ส่งตรวจใหม่แล้ว"); router(); };
     armButton($("[data-remove]", el), "ลบ?", async () => { await Store.del("sheets", p.sheet.id); router(); });
   }
 
-  // คิวช่องไม่มั่นใจ
   const imgs = new Map();
   for (const el of $$(".q-item")) {
     const it = items[el.dataset.i];
     const sh = it.info.sheet;
     if (!imgs.has(sh.id)) imgs.set(sh.id, await sheetImage(sh));
-    $(".q-crop", el).appendChild(cellCrop(sh, imgs.get(sh.id), it.r, it.c));
+    $(".q-crop", el).appendChild(cellCrop(sh, imgs.get(sh.id), it.r, it.c, 96));
     const input = $(".q-input", el);
     const commit = async (val) => {
       const v = (val ?? input.value).trim().toUpperCase();
-      if (v && v !== "-" && !/^[A-Z]$/.test(v)) return toast("ใส่ได้ทีละ 1 ตัว A–Z");
-      setCell(sh.result.reads[it.r][it.c], v === "-" ? "crossed" : v || "empty");
+      if (!v) return toast("แตะตัวอักษร หรือพิมพ์ 1 ตัว A–Z");
+      if (v !== "-" && !/^[A-Z]$/.test(v)) return toast("ใส่ได้ทีละ 1 ตัว A–Z");
+      setCell(sh.result.reads[it.r][it.c], v === "-" ? "crossed" : v);
       await Store.put("sheets", sh);
       el.classList.add("done");
       const left = $$(".q-item:not(.done)");
       $("#left").textContent = left.length;
       const next = left.find((x) => +x.dataset.i > +el.dataset.i) || left[0];
-      if (next) { const ni = $(".q-input", next); ni.focus(); ni.select(); next.scrollIntoView({ block: "center", behavior: "smooth" }); }
+      if (next) next.scrollIntoView({ block: "center", behavior: "smooth" });
       else setTimeout(router, 500);
     };
     input.addEventListener("input", () => (input.value = input.value.toUpperCase()));
@@ -375,72 +343,84 @@ async function paneReview(pane, { exam, sum, rules }) {
     $(".q-ok", el).onclick = () => commit();
     $$(".opt", el).forEach((b) => (b.onclick = () => commit(b.dataset.v)));
   }
-  const first = $(".q-input");
-  if (first) { first.focus({ preventScroll: true }); first.select(); }
 }
 
-// ---------- ④ คะแนน ----------
-function paneScores(pane, { exam, classes, sum }) {
+// ---------- ③ คะแนน ----------
+function paneScore(pane, ctx) {
+  const { exam, classes, sum } = ctx;
   const rooms = [...new Set(sum.students.map((s) => s.room).filter(Boolean))];
   let room = "";
   const c = sum.counts;
+  const w = exam.weight || null;
+  const fix = c.problems + c.reviewCells;
 
   pane.innerHTML = `
-    ${c.problems || c.reviewCells ? `<div class="notice">ยังมี${c.problems ? ` ${c.problems} แผ่นที่มีปัญหา` : ""}${c.reviewCells ? ` ${c.reviewCells} ช่องรอตรวจทาน` : ""} — คะแนนอาจยังไม่ใช่ตัวสุดท้าย <a href="#/exam/${exam.id}/review">ไปตรวจทาน →</a></div>` : ""}
+    ${fix ? `<div class="notice">ยังมี ${fix} จุดที่ต้องตรวจ/แก้ — คะแนนอาจยังเปลี่ยน <a href="#/exam/${exam.id}/check">ไปแก้</a></div>` : ""}
+    <section class="card send-card">
+      <div>
+        <h3>${exam.sentAt ? "ส่งคะแนนให้ฝ่ายวิชาการแล้ว" : "ส่งคะแนนให้ฝ่ายวิชาการ"}</h3>
+        <p class="muted small">${exam.sentAt ? `ส่งเมื่อ ${esc(new Date(exam.sentAt).toLocaleString("th-TH"))} · แก้คะแนนแล้วส่งใหม่ได้` : "ได้ไฟล์ผลคะแนน 1 ไฟล์ — ส่งให้ฝ่ายวิชาการทางไลน์/อีเมล แล้วฝ่ายวิชาการกดนำเข้า"}</p>
+      </div>
+      <button id="send" class="primary big">${exam.sentAt ? "ส่งอีกครั้ง" : "สร้างไฟล์ส่งคะแนน"}</button>
+    </section>
     <div class="row toolbar">
-      ${rooms.length > 1 ? `<select id="room"><option value="">ทุกห้อง</option>${rooms.map((r) => `<option>${esc(r)}</option>`).join("")}</select>` : ""}
+      ${rooms.length > 1 ? `<select id="room" aria-label="เลือกห้อง"><option value="">ทุกห้อง</option>${rooms.map((r) => `<option>${esc(r)}</option>`).join("")}</select>` : ""}
       <span class="spacer"></span>
-      <button id="csv" class="ghost">ส่งออก Excel (CSV)</button>
+      <button id="sgs" class="ghost">ไฟล์คะแนน (Excel) สำหรับ SGS / ปพ.5</button>
       <button id="print" class="ghost">พิมพ์</button>
     </div>
     <div id="stats"></div>
     <section class="card flush print-area">
       <div class="print-only print-head">
-        <b>${esc(exam.name)}</b> — ${esc([exam.subjectCode, exam.subject].filter(Boolean).join(" "))} ${esc(classes.map((x) => x.name).join(", "))} ${exam.date ? "· " + esc(thaiDate(exam.date)) : ""}
+        <b>${esc(Settings.get().schoolName)}</b><br />
+        <b>${esc(exam.name)}</b> — ${esc([exam.subjectCode, exam.subject].filter(Boolean).join(" "))} ${esc(classes.map((x) => x.name).join(", "))} · ${esc(termLabel(exam))} ${exam.date ? "· " + esc(thaiDate(exam.date)) : ""}
+        <br />ครูผู้สอน ${esc(Settings.get().teacherName)}
       </div>
       <table class="table score-table" id="scores"></table>
     </section>
-    <section class="card" id="items"></section>`;
+    <details class="card" id="items-wrap"><summary><b>วิเคราะห์รายข้อ</b> <span class="muted small">— ข้อไหนนักเรียนผิดเยอะ</span></summary><div id="items"></div></details>
+    <details class="card"><summary><b>ไฟล์อื่นๆ</b></summary>
+      <div class="row"><button id="csv" class="ghost">คะแนนรายข้อ (CSV)</button></div>
+    </details>`;
 
   const render = () => {
     const list = sum.students.filter((s) => !room || s.room === room);
     const graded = list.filter((s) => s.sheets.length && s.max);
     const p = graded.map((s) => pct(s.score, s.max));
     const mean = p.length ? p.reduce((a, b) => a + b, 0) / p.length : 0;
-    const sd = p.length ? Math.sqrt(p.reduce((s, x) => s + (x - mean) ** 2, 0) / p.length) : 0;
     const full = graded[0]?.max || sum.fullMax(1);
     const avgScore = graded.length ? graded.reduce((s, x) => s + x.score, 0) / graded.length : 0;
+    const scoreTxt = (sc, mx) => w ? `${fmt(recordedScore(sc, mx, w))}` : fmt(sc);
 
     $("#stats").innerHTML = `<div class="stats">
       <div class="stat"><b>${graded.length}<span class="muted">/${list.length}</span></b><span>คนที่มีคะแนน</span></div>
-      <div class="stat"><b>${graded.length ? fmt(Math.round(avgScore * 10) / 10) : "–"}<span class="muted">/${full}</span></b><span>คะแนนเฉลี่ย (${Math.round(mean)}%)</span></div>
-      <div class="stat"><b>${graded.length ? Math.round(sd) + "%" : "–"}</b><span>ส่วนเบี่ยงเบนมาตรฐาน</span></div>
-      <div class="stat"><b>${graded.length ? `${Math.max(...graded.map((s) => s.score))} / ${Math.min(...graded.map((s) => s.score))}` : "–"}</b><span>สูงสุด / ต่ำสุด</span></div>
+      <div class="stat"><b>${graded.length ? scoreTxt(avgScore, full) : "–"}<span class="muted">/${w || full}</span></b><span>คะแนนเฉลี่ย (${Math.round(mean)}%)</span></div>
+      <div class="stat"><b>${graded.length ? scoreTxt(Math.max(...graded.map((s) => s.score)), full) : "–"}</b><span>สูงสุด</span></div>
+      <div class="stat"><b>${graded.length ? scoreTxt(Math.min(...graded.map((s) => s.score)), full) : "–"}</b><span>ต่ำสุด</span></div>
     </div>`;
 
     $("#scores").innerHTML = `
-      <thead><tr><th>เลขที่</th><th>เลขประจำตัว</th><th>ชื่อ-สกุล</th>${rooms.length > 1 && !room ? "<th>ห้อง</th>" : ""}<th>ชุด</th><th>คะแนน</th><th class="no-print">สถานะ</th></tr></thead>
+      <thead><tr><th>เลขที่</th><th class="hide-sm">เลขประจำตัว</th><th>ชื่อ-สกุล</th>${rooms.length > 1 && !room ? "<th>ห้อง</th>" : ""}
+        <th>ข้อที่ถูก</th>${w ? `<th>คะแนน (เต็ม ${fmt(w)})</th>` : ""}<th class="no-print">สถานะ</th></tr></thead>
       <tbody>${list.map((s) => {
         const st = STUDENT_STATUS[s.status];
         const href = s.sheets[0] ? `#/sheet/${s.sheets[s.sheets.length - 1].sheet.id}` : "";
         return `<tr ${href ? `data-href="${href}"` : ""} class="${s.status === "absent" ? "absent" : ""}">
-          <td>${s.no ?? ""}</td><td class="mono">${esc(s.sid)}</td><td>${esc(s.name)}</td>
+          <td>${s.no ?? ""}</td><td class="mono hide-sm">${esc(s.sid)}</td><td>${esc(s.name)}</td>
           ${rooms.length > 1 && !room ? `<td>${esc(s.room)}</td>` : ""}
-          <td>${s.set ?? ""}</td>
-          <td class="mono"><b>${s.sheets.length ? fmt(s.score) : "–"}</b><span class="muted">/${s.max || full}</span></td>
-          <td class="no-print">${pill(st.cls, st.text + (s.status === "partial" ? ` (${s.missingPages.join(",")})` : ""))}</td>
+          <td class="mono">${s.sheets.length ? `<b>${fmt(s.score)}</b><span class="muted">/${s.max || full}</span>` : "–"}</td>
+          ${w ? `<td class="mono"><b>${s.sheets.length ? fmt(recordedScore(s.score, s.max || full, w)) : "–"}</b></td>` : ""}
+          <td class="no-print">${pill(st.cls, st.text + (s.status === "partial" ? ` (หน้า ${s.missingPages.join(",")})` : ""))}</td>
         </tr>`;
       }).join("")}</tbody>`;
     $$("#scores tr[data-href]").forEach((tr) => (tr.onclick = () => (location.hash = tr.dataset.href)));
 
-    // วิเคราะห์รายข้อ
     const nQ = (exam.pages || 1) * ROWS;
     const stats = Array.from({ length: nQ }, (_, q) => ({ q: q + 1, n: 0, right: 0 }));
     graded.forEach((s) => s.sheets.forEach((i) => i.grade.rows.forEach((r) => { if (r.max) { stats[r.q - 1].n++; stats[r.q - 1].right += r.points; } })));
     const shown = stats.filter((x) => x.n);
     $("#items").innerHTML = shown.length ? `
-      <h3>วิเคราะห์รายข้อ</h3>
-      <p class="muted small">% นักเรียนที่ตอบถูก — ข้อที่ต่ำกว่า 40% (สีแดง) อาจเป็นข้อยาก หรือเฉลยผิด ควรตรวจเฉลยอีกครั้ง</p>
+      <p class="muted small">% นักเรียนที่ตอบถูก · ข้อสีแดง (ต่ำกว่า 40%) อาจเป็นข้อยาก หรือ<b>เฉลยผิด</b> — ลองเช็คเฉลยข้อนั้นอีกครั้ง</p>
       <div class="items">${shown.map((it) => { const v = pct(it.right, it.n); return `
         <div class="item-row ${v < 40 ? "hard" : ""}"><span class="mono">ข้อ ${it.q}</span><div class="bar"><i style="width:${v}%"></i></div><span class="mono">${v}%</span></div>`; }).join("")}</div>`
       : `<p class="muted">ยังไม่มีคะแนน</p>`;
@@ -449,17 +429,35 @@ function paneScores(pane, { exam, classes, sum }) {
   const sel = $("#room");
   if (sel) sel.onchange = () => { room = sel.value; render(); };
 
+  const fname = (suffix) => [exam.subjectCode, exam.name, room, suffix].filter(Boolean).join("_").replace(/[\\/:*?"<>|]/g, "");
   $("#print").onclick = () => window.print();
+  $("#sgs").onclick = () => {
+    const list = sum.students.filter((s) => !room || s.room === room);
+    const lines = [csvRow(["ห้อง", "เลขที่", "เลขประจำตัว", "ชื่อ-สกุล", w ? `คะแนน (เต็ม ${w})` : "คะแนน", "หมายเหตุ"])];
+    for (const s of list) {
+      const val = !s.sheets.length ? "" : w ? fmt(recordedScore(s.score, s.max, w)) : fmt(s.score);
+      lines.push(csvRow([s.room, s.no ?? "", s.sid, s.name, val, s.status === "absent" ? "ขาดสอบ/ยังไม่ส่ง" : s.status === "partial" ? "ขาดบางหน้า" : ""]));
+    }
+    download(`${fname("คะแนน")}.csv`, "﻿" + lines.join("\r\n"), "text/csv");
+  };
   $("#csv").onclick = () => {
     const nQ = (exam.pages || 1) * ROWS;
     const list = sum.students.filter((s) => !room || s.room === room);
-    const lines = [csvRow(["เลขที่", "เลขประจำตัว", "ชื่อ-สกุล", "ห้อง", "ชุด", "คะแนน", "คะแนนเต็ม", "สถานะ", ...Array.from({ length: nQ }, (_, i) => `ข้อ${i + 1}`)])];
+    const lines = [csvRow(["ห้อง", "เลขที่", "เลขประจำตัว", "ชื่อ-สกุล", "ชุด", "ข้อที่ถูก", "จำนวนข้อ", ...Array.from({ length: nQ }, (_, i) => `ข้อ${i + 1}`)])];
     for (const s of list) {
       const perQ = Array(nQ).fill("");
       s.sheets.forEach((i) => i.grade.rows.forEach((r) => { if (r.max) perQ[r.q - 1] = fmt(r.points); }));
-      lines.push(csvRow([s.no ?? "", s.sid, s.name, s.room, s.set ?? "", s.sheets.length ? fmt(s.score) : "", s.max || "", STUDENT_STATUS[s.status].text, ...perQ]));
+      lines.push(csvRow([s.room, s.no ?? "", s.sid, s.name, s.set ?? "", s.sheets.length ? fmt(s.score) : "", s.max || "", ...perQ]));
     }
-    const name = [exam.subjectCode, exam.name, room].filter(Boolean).join("_").replace(/[\\/:*?"<>|]/g, "");
-    download(`${name}.csv`, "﻿" + lines.join("\r\n"), "text/csv");
+    download(`${fname("รายข้อ")}.csv`, "﻿" + lines.join("\r\n"), "text/csv");
+  };
+  $("#send").onclick = async () => {
+    const data = Transfer.resultsFile(ctx);
+    download(`ส่งคะแนน_${fname("")}.json`, JSON.stringify(data), "application/json");
+    exam.sentAt = Date.now();
+    await Store.put("exams", exam);
+    if (Settings.get().role === "admin") await Transfer.importResults(data); // เครื่องเดียวกัน → เข้าภาพรวมเลย
+    toast("สร้างไฟล์แล้ว — ส่งไฟล์นี้ให้ฝ่ายวิชาการ");
+    router();
   };
 }

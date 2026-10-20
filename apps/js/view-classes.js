@@ -23,7 +23,7 @@ Views.classEdit = async (root, id) => {
   let students = [...(cls.students || [])];
 
   root.innerHTML = `
-    <div class="page-head"><div><a class="back" href="#/classes">← ห้องเรียน</a><h2>${isNew ? "เพิ่มห้องเรียน" : esc(cls.name)}</h2></div></div>
+    <div class="page-head"><div><a class="back" href="#/classes">${ico("back")}ห้องเรียน</a><h2>${isNew ? "เพิ่มห้องเรียน" : esc(cls.name)}</h2></div></div>
     <form id="cf" class="card form">
       <div class="two-fields">
         <label>ชื่อห้อง<input name="name" value="${esc(cls.name)}" placeholder="เช่น ม.3/2" required /></label>
@@ -55,7 +55,7 @@ Views.classEdit = async (root, id) => {
           <td><input class="mini" data-i="${i}" data-k="no" value="${esc(s.no)}" inputmode="numeric" /></td>
           <td><input class="mini mono" data-i="${i}" data-k="sid" value="${esc(s.sid)}" inputmode="numeric" /></td>
           <td><input data-i="${i}" data-k="name" value="${esc(s.name)}" /></td>
-          <td><button type="button" class="icon" data-rm="${i}" title="ลบ">✕</button></td></tr>`).join("")}</tbody>
+          <td><button type="button" class="icon" data-rm="${i}" title="ลบ" aria-label="ลบ">${ico("x")}</button></td></tr>`).join("")}</tbody>
       </table>
       ${dup.size ? `<p class="bad-text small">มีเลขประจำตัวซ้ำ (แถวสีแดง) — ระบบจะจับคู่กระดาษผิดคน</p>` : ""}
       <button type="button" id="add-one" class="ghost small">+ เพิ่มทีละคน</button>`
