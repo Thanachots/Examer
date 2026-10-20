@@ -1,12 +1,15 @@
 // engine.js — ตัวเรียกโมเดลในเบราว์เซอร์ (ทำงานใน engine-worker.js)
 // ใช้: await BrowserEngine.load(onStatus) แล้ว await BrowserEngine.grade(file) → Result ตาม docs/ENGINE.md
 
+// ที่อยู่ของไฟล์นี้ (shared/engine.js) — ใช้หา engine-worker.js และโฟลเดอร์ engine/ ได้ไม่ว่าหน้าไหนจะเรียก
+const ENGINE_BASE = document.currentScript?.src || location.href;
+
 const ENGINE_DEFAULTS = {
   pyodide: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/",
   ort: "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/",
   // โค้ด Python ของ repo โมเดล — ปักไว้ที่ commit ที่ทดสอบแล้ว (เปลี่ยนเมื่อทีมโมเดลอัปเดต)
   cvSrc: "https://cdn.jsdelivr.net/gh/67160328/Computer-Vision@7fe575a/",
-  engine: "engine/",
+  engine: "../engine/", // public/engine/ (นับจาก shared/)
 };
 
 const BrowserEngine = (() => {
@@ -20,7 +23,7 @@ const BrowserEngine = (() => {
     let o = {};
     try { o = JSON.parse(localStorage.getItem("examer.engineConfig")) || {}; } catch {}
     const c = { ...ENGINE_DEFAULTS, ...o };
-    for (const k of Object.keys(c)) c[k] = new URL(c[k], location.href).href;
+    for (const k of Object.keys(c)) c[k] = new URL(c[k], ENGINE_BASE).href;
     return c;
   }
 
@@ -38,7 +41,7 @@ const BrowserEngine = (() => {
   }
 
   function start() {
-    worker = new Worker(new URL("js/engine-worker.js", location.href));
+    worker = new Worker(new URL("engine-worker.js", ENGINE_BASE));
     worker.onmessage = (e) => {
       const m = e.data;
       if (m.type === "status") return emit({ text: m.text, p: m.p });

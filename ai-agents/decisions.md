@@ -10,6 +10,7 @@
 | 2026-10-19 | ~~ต่อโมเดลผ่าน server (FastAPI)~~ → ยกเลิก ใช้แถวข้างบนแทน | ต้องเช่า server รันทิ้งไว้ | claude/gelatin |
 | 2026-10-19 | วิธีเอาโมเดลเข้าเว็บ (Pyodide หรือเขียนใหม่เป็น JS + ONNX) — **ยังไม่ได้เลือก** | รอโมเดลนิ่งก่อน | claude/gelatin |
 | 2026-10-19 | หน้าเว็บกับแอปมือถือใช้หน้าตาเดียวกัน เรียกว่า "หน้า app" · ต้นแบบเป็นเว็บก่อน | เวลาจำกัด · แอปจะต่อกับเว็บอยู่แล้ว (ผู้ใช้ต้องดู dashboard) | claude/gelatin |
-| 2026-10-19 | โครง repo: `apps/` (ไม่ซ้อนโฟลเดอร์) · `docs/` · `.github/workflows/` · `ai-agents/` | จัดให้ทีมหาของง่าย | claude/gelatin |
+| 2026-10-19 | โครง repo: ~~`apps/` (ไม่ซ้อนโฟลเดอร์)~~ → `public/` ดูแถว 2026-10-21 · `docs/` · `.github/workflows/` · `ai-agents/` | จัดให้ทีมหาของง่าย | claude/gelatin |
 | 2026-10-19 | README หลัก = เนื้อหาสรุปโปรเจคเดิม + ส่วน "Repo นี้" ท้ายไฟล์ | ของเดิมอธิบายโปรเจคได้ดีกว่า | claude/gelatin |
-| 2026-10-19 | deploy `apps/` ขึ้น GitHub Pages อัตโนมัติด้วย GitHub Actions เมื่อ merge เข้า main · มี check ทุก PR | เปิดดูเว็บได้จากลิงก์ ไม่ต้องรันเอง | claude/gelatin |
+| 2026-10-19 | deploy ~~`apps/`~~ `public/` ขึ้น GitHub Pages อัตโนมัติด้วย GitHub Actions เมื่อ merge เข้า main · มี check ทุก PR | เปิดดูเว็บได้จากลิงก์ ไม่ต้องรันเอง | claude/gelatin |
+| 2026-10-21 | แยก `apps/` → `public/` = `dashboard/` (เว็บฝ่ายวิชาการ) · `app/` (แอปครู) · `shared/` (ใช้ร่วม) · `engine/` · UI เดิมของ Prame → `legacy/` · workflow deploy `public/` (`deploy-pages.yml`) | แยกแอปออกจากเว็บ ให้เอาไปทำแอปมือถือจริงได้ (รวม app+shared+engine) โดยยัง deploy เว็บเดียวกัน ข้อมูลในเครื่องใช้ร่วมกันได้ | claude/gelatin |

@@ -1,5 +1,5 @@
 # ตรวจงานใน Pull Request ก่อน merge เข้า main
-# apps: เช็ค syntax JavaScript และไฟล์หลักของหน้า app ยังอยู่ครบ
+# public: เช็ค syntax JavaScript และไฟล์หลักของ dashboard / แอปครู ยังอยู่ครบ
 name: Check pull request
 
 on:
@@ -10,14 +10,16 @@ permissions:
   contents: read
 
 jobs:
-  apps:
+  public:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Check JavaScript syntax
-        run: for f in apps/js/*.js; do node --check "$f"; done
+        run: find public -name "*.js" -not -path "*/vendor/*" -print0 | xargs -0 -n1 node --check
 
-      - name: Check required app files exist
-        run: test -f apps/index.html && test -f apps/style.css
-
+      - name: Check required files exist
+        run: |
+          for f in public/index.html public/dashboard/index.html public/app/index.html public/shared/core.js public/shared/base.css; do
+            test -f "$f" || { echo "missing $f"; exit 1; }
+          done

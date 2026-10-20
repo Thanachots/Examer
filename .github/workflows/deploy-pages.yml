@@ -1,13 +1,13 @@
-# Deploy เว็บต้นแบบ (โฟลเดอร์ apps/) ขึ้น GitHub Pages
-# ทำงานเมื่อ: มีการ push/merge เข้า main ที่แก้ไฟล์ใน apps/ หรือกดรันเองในแท็บ Actions
-name: Deploy apps to GitHub Pages
+# Deploy เว็บ (โฟลเดอร์ public/ = dashboard/ + app/ + shared/ + engine/) ขึ้น GitHub Pages
+# ทำงานเมื่อ: มีการ push/merge เข้า main ที่แก้ไฟล์ใน public/ หรือกดรันเองในแท็บ Actions
+name: Deploy public to GitHub Pages
 
 on:
   push:
     branches: [main]
     paths:
-      - "apps/**"
-      - ".github/workflows/deploy-apps.yml"
+      - "public/**"
+      - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -30,13 +30,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Check JavaScript syntax
-        run: for f in apps/js/*.js; do node --check "$f"; done
+        run: find public -name "*.js" -not -path "*/vendor/*" -print0 | xargs -0 -n1 node --check
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps
+          path: public
 
       - id: deployment
         uses: actions/deploy-pages@v4
