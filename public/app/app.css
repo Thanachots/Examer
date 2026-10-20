@@ -1,0 +1,323 @@
+/* =====================================================================
+   app/app.css — แอปครูผู้สอน (ใช้คู่กับ ../shared/base.css)
+   ===================================================================== */
+html { scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
+.m-app { min-height: 100dvh; display: flex; flex-direction: column; }
+.m-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 6px; min-height: 56px; padding: 8px 18px; background: var(--card); border-bottom: 1px solid var(--line-soft); }
+.m-title { font-size: 24px; }
+.m-title.sm { font-family: var(--font); font-size: 17px; font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-back { display: grid; place-items: center; width: 36px; height: 36px; margin-left: -10px; color: var(--ink); border-radius: 50%; }
+.m-back .ico { width: 24px; height: 24px; }
+.m-main { flex: 1; padding: 18px 18px 110px; }
+.m-app:has(.tabs[hidden]) .m-main { padding-bottom: 32px; }
+.m-lead { margin-bottom: 14px; }
+
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: grid; grid-template-columns: repeat(3, 1fr);
+  padding: 8px 6px calc(10px + env(safe-area-inset-bottom)); background: var(--card); border-top: 1px solid var(--line);
+}
+.tabs a { display: grid; justify-items: center; gap: 3px; padding: 4px 0; color: var(--muted); font-size: 12.5px; font-weight: 500; text-decoration: none; }
+.tabs a .ico { width: 26px; height: 26px; }
+.tabs a.active { color: var(--accent); }
+.tabs a.active .ico { stroke-width: 2.2; }
+#toast { bottom: 96px; }
+.m-app:has(.tabs[hidden]) ~ #toast { bottom: 28px; }
+
+/* หน้าเข้าสู่ระบบในแอป: หน้าเดียวพอดีจอ ไม่เลื่อน */
+html.no-scroll, html.no-scroll body { overflow: hidden; height: 100%; }
+.m-app:has(.m-login) .m-main { padding: 0; }
+.m-login { height: 100dvh; display: flex; flex-direction: column; justify-content: center; gap: 28px; padding: 24px 22px calc(24px + env(safe-area-inset-bottom)); overflow: hidden; }
+.m-login-brand { display: grid; justify-items: center; text-align: center; }
+.m-login-brand .logo { width: 84px; height: 84px; margin-bottom: 16px; filter: drop-shadow(0 10px 18px rgba(20, 58, 74, .25)); }
+.m-login-brand h1 { font-size: 30px; font-weight: 700; letter-spacing: .01em; }
+.m-login-brand p { color: var(--muted); }
+.m-login .login-form { width: 100%; max-width: 380px; margin: 0 auto; gap: 14px; }
+@media (max-height: 600px) { .m-login { gap: 16px; } .m-login-brand .logo { width: 60px; height: 60px; margin-bottom: 8px; } }
+
+/* สร้างข้อสอบ */
+.m-form { display: grid; gap: 22px; }
+.field { display: grid; gap: 10px; }
+.field-l { font-weight: 500; }
+.field-l small { font-weight: 400; font-size: 13px; margin-left: 4px; }
+.counter { display: flex; align-items: center; gap: 14px; }
+.counter output { min-width: 32px; text-align: center; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.q { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.two { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+input[type="date"], input[type="number"] { width: 100%; min-height: 46px; padding: 0 12px; border: 1.5px solid var(--line); border-radius: var(--r-sm); background: var(--card); }
+.rooms { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 46px; padding: 6px; border: 1.5px solid var(--line); border-radius: var(--r-sm); background: var(--card); }
+.rooms:focus-within { border-color: var(--accent); }
+.room { display: inline-flex; align-items: center; gap: 2px; padding: 2px 4px 2px 10px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 14.5px; }
+.room button { width: 24px; height: 24px; padding: 0; border: 0; background: none; color: inherit; font-size: 17px; cursor: pointer; }
+.rooms input { flex: 1; min-width: 90px; min-height: 32px !important; padding: 0 6px !important; border: 0 !important; background: none !important; }
+  aspect-ratio: 5 / 6; display: grid; place-items: center; border: 1.2px solid color-mix(in srgb, var(--muted) 45%, transparent); border-radius: 3px; background: var(--card);
+  font: 600 17px/1 var(--hand); font-style: normal; color: color-mix(in srgb, var(--accent) 75%, var(--ink));
+}
+
+/* ข้อสอบของฉัน + หน้าซ้อนแก้ข้อสอบ */
+.exam-list.mine { margin-top: 14px; }
+.tag { display: inline-block; margin-left: 4px; padding: 0 8px; border-radius: 10px; font-size: 12px; font-weight: 600; line-height: 20px; vertical-align: 2px; }
+.tag.draft { background: var(--line-soft); color: var(--muted); }
+.tag.edit { background: var(--warn-soft); color: var(--warn); }
+.hub { display: grid; gap: 16px; }
+.hub-list { list-style: none; margin: 0; padding: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.hub-list li + li { border-top: 1px solid var(--line-soft); }
+.hub-list a { display: flex; align-items: center; gap: 14px; min-height: 72px; padding: 12px 16px; color: var(--ink); text-decoration: none; }
+.hub-list .ico { color: var(--muted); }
+.hub-ok { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--line); font-size: 14px; font-weight: 700; }
+.hub-ok.ok { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.hub-actions { display: grid; gap: 8px; }
+.hub-actions .danger-link { margin-top: 6px; }
+.fit { gap: 18px; }
+/* ขั้นตอนสร้างข้อสอบ: จุด 3 จุดมุมขวาบน + ปุ่มถัดไปติดล่าง */
+.wiz { display: inline-flex; gap: 5px; margin-left: auto; }
+.wiz i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.wiz i.on { background: var(--accent); }
+.wiz-bar { position: sticky; bottom: 0; z-index: 4; margin: 18px -18px -32px; padding: 12px 18px calc(14px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line-soft); }
+.m-main:has(.wiz-bar) .fit { min-height: calc(100dvh - 56px - 18px - 92px); align-content: start; }
+
+/* หน้าต่างถามซ้ำ */
+.sheet-wrap { position: fixed; inset: 0; z-index: 30; display: grid; align-items: end; background: rgba(10, 20, 26, .45); animation: fade .15s ease-out; }
+.sheet { display: grid; gap: 10px; padding: 22px 20px calc(20px + env(safe-area-inset-bottom)); background: var(--card); border-radius: 18px 18px 0 0; }
+.sheet h2 { font-size: 19px; }
+.sheet p { color: var(--muted); }
+.sheet-act { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.btn.danger { background: var(--bad); color: #fff; }
+@keyframes fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sheet-wrap { animation: none; } }
+.keys-page { display: grid; gap: 18px; }
+
+/* เฉลย: จำนวนข้อ */
+.count-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.cnt { min-width: 52px; height: 42px; padding: 0 10px; border: 1.5px solid var(--line); border-radius: 21px; background: var(--card); font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; font-variant-numeric: tabular-nums; }
+.cnt.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.cnt.other { color: var(--muted); font-weight: 500; }
+/* "ระบุ": หน้าตาแบบ −/+ เสมอ · ยังไม่เลือก = เทา มีคำว่าระบุ · เลือกแล้ว = สีหลัก มีตัวเลข */
+.cnt-custom { display: inline-flex; align-items: center; gap: 4px; padding: 2px; border: 1.5px solid var(--line); border-radius: 22px; background: var(--card); }
+.cnt-custom .icon-btn { border-color: transparent; color: var(--muted); }
+.cnt-custom.on { border-color: var(--accent); background: var(--accent-soft); }
+.cnt-custom.on .icon-btn { border-color: var(--line); color: var(--ink); background: var(--card); }
+.cnt-custom output { min-width: 30px; text-align: center; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.cnt-l { min-width: 38px; height: 34px; padding: 0 2px; border: 0; background: none; font: inherit; font-weight: 600; color: var(--muted); cursor: pointer; }
+.icon-btn.sm { width: 34px; height: 34px; font-size: 17px; }
+.icon-btn.sm .ico { width: 17px; height: 17px; }
+
+/* เฉลย: ชุดข้อสอบ — วงกลมแบบช่อง "ชุด" บนกระดาษ · เส้นรอบวง = ใส่เฉลยไปกี่ % */
+.set-row { display: flex; gap: 12px; align-items: center; }
+.setc { position: relative; width: 50px; height: 50px; padding: 4px; border: 0; border-radius: 50%; cursor: pointer; background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--line) 0); }
+.setc span { width: 100%; height: 100%; display: grid; place-items: center; border-radius: 50%; background: var(--card); font: 700 20px/1 var(--hand); color: var(--accent); }
+.setc.cur span { background: var(--accent); color: var(--accent-ink); }
+.setc.cur { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--gold); }
+.setc.off { background: none; border: 2px dashed color-mix(in srgb, var(--muted) 55%, transparent); padding: 2px; }
+.setc.off span { background: none; color: var(--muted); opacity: .55; }
+.setc.off::after { content: "+"; position: absolute; right: -4px; top: -4px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; background: var(--card); border: 1.5px solid var(--line); color: var(--muted); font-size: 15px; font-weight: 700; line-height: 1; }
+.setc.full:not(.cur) span::after { content: ""; }
+.set-del { margin-left: auto; color: var(--bad); }
+.set-del.armed { border-color: var(--bad); background: var(--bad-soft); }
+
+/* เฉลย: รายข้อ */
+.qa-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.qa-list li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.qa-in { min-height: 44px !important; font: 600 19px var(--hand) !important; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--accent) 75%, var(--ink)) !important; }
+.qa-in::placeholder { font: 400 14px var(--font); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.pts { display: inline-flex; align-items: center; border: 1.5px solid var(--line); border-radius: var(--r-sm); background: var(--card); overflow: hidden; }
+.pts button { width: 30px; height: 40px; padding: 0; border: 0; background: none; font: inherit; font-size: 18px; color: var(--accent); cursor: pointer; }
+.pts output { min-width: 22px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pager { display: flex; gap: 6px; }
+.pager button { position: relative; flex: 1; height: 36px; border: 1.5px solid var(--line); border-radius: var(--r-sm); background: var(--card); font: inherit; font-size: 13.5px; color: var(--muted); cursor: pointer; font-variant-numeric: tabular-nums; }
+.pager button.on { border-color: var(--accent); color: var(--accent); font-weight: 600; background: var(--accent-soft); }
+.pager button.full::after { content: ""; position: absolute; left: 30%; right: 30%; bottom: 3px; height: 3px; border-radius: 2px; background: var(--ok); }
+
+/* คะแนน */
+.score-box { display: grid; justify-items: center; gap: 2px; padding: 22px 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); text-align: center; }
+.score-box b { font-size: 44px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.scale-row { display: flex; gap: 10px; align-items: center; }
+.scale-row input { flex: 1; text-align: center; font-size: 20px; font-weight: 600; }
+
+/* หน้าข้อสอบ: ข้อมูลการสอบ */
+.ex-meta { margin: -4px 0 12px; color: var(--muted); font-size: 14.5px; }
+.ex-scale { margin: -6px 0 14px; }
+.set-pick { display: grid; gap: 6px; }
+
+/* รายการข้อสอบ */
+.exam-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.exam-list a { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); color: var(--ink); text-decoration: none; }
+.exam-list a:active { background: var(--line-soft); }
+.ex-t { flex: 1; min-width: 0; display: grid; }
+.ex-t small { color: var(--muted); font-size: 14px; }
+.exam-list .ico { color: var(--muted); }
+.m-empty { padding: 48px 8px; text-align: center; display: grid; gap: 8px; justify-items: center; }
+.m-empty h2 { font-size: 19px; }
+.m-empty .btn { margin-top: 12px; }
+
+/* ขั้นตอนตรวจ (แถบบน) */
+.steps { list-style: none; margin: -18px -18px 18px; padding: 14px 12px; display: grid; grid-template-columns: repeat(3, 1fr); background: var(--card); border-bottom: 1px solid var(--line-soft); counter-reset: s; }
+.steps li { position: relative; display: grid; justify-items: center; font-size: 13px; color: var(--muted); }
+.steps li > a, .steps li > span { display: contents; }
+.steps li > a { color: inherit; text-decoration: none; }
+.steps li a, .steps li { text-align: center; }
+.steps li::before { content: ""; position: absolute; top: 15px; left: -50%; right: 50%; height: 2px; background: var(--line); }
+.steps li:first-child::before { display: none; }
+.steps li.done::before, .steps li.now::before { background: var(--accent); }
+.steps .dot { position: relative; z-index: 1; width: 32px; height: 32px; display: grid; place-items: center; margin-bottom: 4px; border-radius: 50%; background: var(--card); border: 2px solid var(--line); font-weight: 700; color: var(--muted); }
+.steps li.done { color: var(--ink); }
+.steps li.done .dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.steps li.now { color: var(--ink); font-weight: 600; }
+.steps li.done .dot { font-size: 0; }
+.steps li.done .dot::after { content: "✓"; font-size: 15px; }
+.steps li.now .dot { background: var(--card); border-color: var(--gold); color: var(--ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 22%, transparent); }
+
+.step-body { display: grid; gap: 16px; }
+.step-actions { display: grid; gap: 10px; }
+.step-actions.row { display: flex; }
+.step-actions .grow { flex: 1; }
+
+/* 1 ถ่ายภาพ */
+.shot { aspect-ratio: 3 / 4; border-radius: var(--r); overflow: hidden; display: grid; place-items: center; border: 2px dashed var(--line); background: var(--card); }
+.shot.has { border: 0; background: #000; }
+.shot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.shot-guide { display: grid; justify-items: center; gap: 10px; padding: 24px; text-align: center; color: var(--muted); }
+.shot-guide .ico { width: 44px; height: 44px; color: var(--accent); }
+.shot-guide p { max-width: 220px; }
+
+.pick-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pick-row .btn { padding: 0 10px; }
+.btn.off, .link.off { pointer-events: none; opacity: .5; }
+.busy { padding: 10px 14px; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--accent); font-size: 14px; }
+
+/* รูปที่ถ่ายแล้ว (ขั้น 1) */
+.thumbs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.thumbs li { position: relative; aspect-ratio: 3 / 4; border-radius: var(--r-sm); overflow: hidden; background: #000; }
+.thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb-x {
+  position: absolute; top: 4px; right: 4px; width: 30px; height: 30px; display: grid; place-items: center; padding: 0;
+  border: 0; border-radius: 50%; background: rgba(0, 0, 0, .6); color: #fff; font-size: 20px; line-height: 1; cursor: pointer;
+}
+.strip-n { position: absolute; left: 4px; bottom: 4px; min-width: 22px; padding: 0 6px; border-radius: 11px; background: rgba(0, 0, 0, .6); color: #fff; font-size: 12px; font-weight: 600; line-height: 22px; text-align: center; }
+
+/* แถบรูปย่อ (ขั้น 2–3) */
+.strip { display: flex; gap: 8px; overflow-x: auto; margin: -4px -18px 0; padding: 4px 18px 6px; scrollbar-width: none; }
+.strip-i { position: relative; flex: none; width: 54px; height: 72px; padding: 0; border: 2px solid transparent; border-radius: var(--r-sm); overflow: hidden; background: #000; cursor: pointer; }
+.strip-i img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .75; }
+.strip-i.now { border-color: var(--gold); }
+.strip-i.now img { opacity: 1; }
+.strip-i .strip-n { left: 3px; bottom: 3px; min-width: 18px; line-height: 18px; font-size: 11px; padding: 0 4px; }
+.strip-ok { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 700; }
+.strip-sc { position: absolute; top: 3px; right: 3px; padding: 0 4px; border-radius: 4px; background: var(--card); color: var(--ink); font-size: 11px; font-weight: 700; line-height: 17px; }
+
+/* 2 ครอบภาพ */
+.crop { position: relative; width: min(100%, calc(58dvh * var(--ar))); margin: 0 auto; border-radius: var(--r-sm); overflow: visible; touch-action: none; user-select: none; }
+.crop img { width: 100%; height: 100%; display: block; border-radius: var(--r-sm); pointer-events: none; }
+.crop svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.crop-shade { fill: rgba(0, 0, 0, .45); }
+.crop-edge { fill: none; stroke: #ffffff; stroke-width: 3; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.handle {
+  position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; padding: 0; border-radius: 50%; cursor: grab; touch-action: none;
+  background: #fff; border: 4px solid #2f63c6; box-shadow: 0 2px 6px rgba(0, 0, 0, .4);
+}
+.handle::after { content: ""; position: absolute; inset: -10px; } /* พื้นที่แตะกว้างขึ้น */
+.handle.drag { cursor: grabbing; transform: scale(1.2); }
+
+/* 3 ตรวจข้อสอบ: ความคืบหน้าของโมเดล */
+.btn[disabled] { opacity: .55; cursor: default; pointer-events: none; }
+.bar { display: block; height: 6px; border-radius: 3px; background: var(--line-soft); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: inherit; transition: width .12s linear; }
+.run-sum { padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); display: grid; gap: 8px; }
+.run-sum-t { display: flex; justify-content: space-between; gap: 10px; font-size: 14.5px; }
+.run-sum-t b { font-variant-numeric: tabular-nums; }
+.run-photo { height: 200px; border-radius: var(--r); overflow: hidden; background: #000; }
+.run-photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.stages { list-style: none; margin: 0; padding: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); }
+.stages li { display: grid; grid-template-columns: 30px minmax(0, 1fr) 42px; align-items: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--line-soft); }
+.stages li:first-child { border-top: 0; }
+.st-ico { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--line); color: var(--muted); font-weight: 700; font-size: 14px; }
+.st-t { display: grid; gap: 2px; min-width: 0; }
+.st-t small { color: var(--muted); font-size: 13px; }
+.st-t .bar { margin-top: 6px; }
+.st-p { text-align: right; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.stages li.wait { color: var(--muted); }
+.stages li.wait .bar { visibility: hidden; }
+.stages li.now .st-ico { border-color: var(--accent); color: var(--accent); }
+.stages li.now .st-p { color: var(--accent); font-weight: 600; }
+.stages li.done .st-ico { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.strip-run { position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, .35); border-top-color: #fff; animation: spin .8s linear infinite; }
+.strip-wait { position: absolute; top: 3px; right: 3px; padding: 0 4px; border-radius: 4px; background: rgba(0, 0, 0, .6); color: #fff; font-size: 11px; line-height: 17px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .strip-run { animation-duration: 2.4s; } .bar i { transition: none; } }
+
+/* 3 ตรวจข้อสอบ: ผล (ใช้ทั้งขั้นตรวจและหน้าดูผล) */
+.res-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; }
+.score { display: flex; align-items: baseline; gap: 8px; }
+.score b { font: 700 38px/1 var(--hand); color: var(--red); font-variant-numeric: tabular-nums; }
+.score span { color: var(--muted); }
+.sid { font-size: 13px; color: var(--muted); font-weight: 500; gap: 4px; }
+.sid input { width: 120px; min-height: 38px; padding: 0 10px; font-size: 16px; font-variant-numeric: tabular-nums; color: var(--ink); }
+.sim-note { padding: 8px 12px; border-radius: var(--r-sm); background: var(--line-soft); color: var(--muted); font-size: 13px; }
+.review-note { padding: 10px 12px; border-radius: var(--r-sm); background: var(--warn-soft); color: var(--warn); font-size: 14px; font-weight: 500; }
+.answers { list-style: none; margin: 0; padding: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.row { border-top: 1px solid var(--line-soft); }
+.row:first-child { border-top: 0; }
+.row-main { width: 100%; display: grid; grid-template-columns: 26px minmax(0, 1fr) 30px; align-items: center; gap: 10px; padding: 10px 12px; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.row.st-wrong .row-main { background: var(--bad-soft); }
+.row.st-review .row-main { background: var(--warn-soft); }
+.row.open .row-main { background: var(--accent-soft); }
+.ans { display: grid; gap: 2px; min-width: 0; }
+.ans small { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.boxes { display: flex; flex-wrap: wrap; gap: 2px; }
+.c {
+  width: 21px; height: 25px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 2px; background: var(--card);
+  font: 600 16px/1 var(--hand); font-style: normal; color: color-mix(in srgb, var(--accent) 70%, var(--ink));
+}
+.c.diff { color: var(--bad); border-color: var(--bad); }
+.c.low { border: 1.5px dashed var(--warn); background: var(--warn-soft); }
+.c.x { text-decoration: line-through; color: var(--muted); }
+.mark { font-size: 19px; font-weight: 700; text-align: center; }
+.st-right .mark { color: var(--ok); }
+.st-wrong .mark { color: var(--bad); }
+.st-partial .mark { color: var(--warn); }
+.st-review .mark { color: var(--warn); }
+.row-edit { display: grid; gap: 12px; padding: 4px 12px 14px 48px; background: var(--accent-soft); }
+.edit-cells { display: flex; flex-wrap: wrap; gap: 4px; }
+.edit-cells .c { width: 34px; height: 40px; font-size: 22px; cursor: pointer; }
+.edit-cells .c.sel { outline: 2.5px solid var(--gold); outline-offset: 1px; }
+.picker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { min-width: 44px; height: 40px; padding: 0 12px; border: 1.5px solid var(--accent); border-radius: 20px; background: var(--card); color: var(--accent); font: 600 18px var(--hand); cursor: pointer; }
+.chip.ghost { border-color: var(--line); color: var(--muted); font: 500 14px var(--font); }
+.pick-in { width: 70px !important; min-height: 40px !important; text-align: center; font: 600 18px var(--hand) !important; text-transform: uppercase; }
+.seg { display: flex; border: 1.5px solid var(--line); border-radius: var(--r-sm); overflow: hidden; background: var(--card); }
+.seg button { flex: 1; min-height: 38px; padding: 0 8px; border: 0; border-left: 1px solid var(--line); background: none; font: inherit; font-size: 14px; color: var(--muted); cursor: pointer; }
+.seg button:first-child { border-left: 0; }
+.seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.strip-sc.rv { background: var(--warn-soft); color: var(--warn); }
+
+/* หน้าข้อสอบ: คะแนนทุกแผ่น */
+.m-main > .btn.block, .m-main > .score-list, .m-main > .ex-sum { margin-bottom: 14px; }
+.ex-sum { display: grid; grid-template-columns: 1fr 1fr; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); }
+.ex-sum div { display: grid; padding: 14px 16px; }
+.ex-sum div + div { border-left: 1px solid var(--line-soft); }
+.ex-sum b { font-size: 26px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.ex-sum span { color: var(--muted); font-size: 13.5px; }
+.sec-h { font-size: 16px; margin: 22px 0 10px; }
+.score-list { list-style: none; margin: 0; padding: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.score-list li + li { border-top: 1px solid var(--line-soft); }
+.score-list a { display: flex; align-items: center; gap: 12px; padding: 10px 14px; color: var(--ink); text-decoration: none; }
+.score-list img { width: 36px; height: 48px; object-fit: cover; border-radius: 4px; background: #000; flex: none; }
+.score-list .sc { font: 700 20px var(--hand); color: var(--red); font-variant-numeric: tabular-nums; }
+.score-list em, .exam-list em { font-style: normal; color: var(--warn); font-weight: 500; }
+.ex-none { padding: 18px 0; }
+.danger-link { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 18px; color: var(--bad); text-decoration: none; }
+.danger-link.armed, .m-card.list button.armed { font-weight: 600; }
+
+/* ตั้งค่า */
+.m-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); margin-bottom: 14px; }
+.m-card.acct { display: flex; align-items: center; gap: 14px; padding: 16px; }
+.m-card.list { display: grid; overflow: hidden; }
+.m-card.list button { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; border: 0; border-top: 1px solid var(--line-soft); background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
+.m-card.list button:first-child { border-top: 0; }
+.m-card.list .danger { color: var(--bad); }
+.m-card.list .file-row { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 16px; border-top: 1px solid var(--line-soft); font-weight: 400; cursor: pointer; }
+.m-card.rules { padding: 6px 16px 14px; }
+.rule { display: grid; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+.rule input[type="range"] { width: 100%; accent-color: var(--accent); }
+.rules > p { margin-top: 10px; }
+.pad { padding: 0 4px 18px; }

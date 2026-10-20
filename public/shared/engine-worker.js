@@ -3,7 +3,7 @@
 // ① ② (ตัดขอบ / จับช่อง / เตรียมภาพช่อง): โค้ด Python ของ repo โมเดล รันด้วย Pyodide + OpenCV
 //      — ดึงจาก repo Computer-Vision ตรงๆ (ไม่ได้ก๊อปมาไว้ใน Examer)
 // ③ (อ่านตัวอักษร / ตัวเลข / ขีดฆ่า): โมเดล 3 ตัวที่แปลงเป็น ONNX รันด้วย onnxruntime-web
-// ตัวกลางอยู่ที่ apps/engine/examer_engine.py
+// ตัวกลางอยู่ที่ public/engine/examer_engine.py
 
 const PY_SRC = [
   "src/preprocessing/dewarp.py",

@@ -1,14 +1,14 @@
 # Engine — ข้อตกลงระหว่างหน้า app กับโมเดล
 
 โมเดล**รันในเบราว์เซอร์** (ไม่มี server) หน้า app เรียกโมเดลผ่านจุดเดียวคือ `Pipeline.run()` ใน
-[`apps/js/pipeline.js`](../apps/js/pipeline.js) — **ผลที่ส่งกลับต้องเป็นรูปแบบในเอกสารนี้** หน้า app จะได้ไม่ต้องแก้
+[`public/shared/pipeline.js`](../public/shared/pipeline.js) — **ผลที่ส่งกลับต้องเป็นรูปแบบในเอกสารนี้** หน้า app จะได้ไม่ต้องแก้
 
-> สถานะ: **v0.2** — มี engine จริงแล้ว (Pyodide + ONNX, ดู [apps/README.md](../apps/README.md)) · โหมดจำลองยังเลือกได้ในหน้าตั้งค่า
-> ถ้าทีมโมเดลจะเปลี่ยนชื่อ/ความหมายฟิลด์ ให้แก้ไฟล์นี้, `apps/engine/examer_engine.py` และ `pipeline.js` ใน PR เดียวกัน
+> สถานะ: **v0.2** — มี engine จริงแล้ว (Pyodide + ONNX, ดู [public/README.md](../public/README.md)) · โหมดจำลองยังเลือกได้ในหน้าตั้งค่า
+> ถ้าทีมโมเดลจะเปลี่ยนชื่อ/ความหมายฟิลด์ ให้แก้ไฟล์นี้, `public/engine/examer_engine.py` และ `pipeline.js` ใน PR เดียวกัน
 
 ## engine ที่ใช้ตอนนี้ (เสนอ — รอทีมยืนยัน)
-- ①② ตัดขอบ/หาช่อง: โค้ด Python เดิมของ repo โมเดล รันด้วย Pyodide + OpenCV (ดึงจาก repo โมเดลตาม commit ที่ปักไว้ใน `apps/js/engine.js`)
-- ③ อ่านตัวอักษร/ตัวเลข/ขีดฆ่า: `.pt` 3 ตัวแปลงเป็น ONNX (`apps/engine/models/`) รันด้วย onnxruntime-web
+- ①② ตัดขอบ/หาช่อง: โค้ด Python เดิมของ repo โมเดล รันด้วย Pyodide + OpenCV (ดึงจาก repo โมเดลตาม commit ที่ปักไว้ใน `public/shared/engine.js`)
+- ③ อ่านตัวอักษร/ตัวเลข/ขีดฆ่า: `.pt` 3 ตัวแปลงเป็น ONNX (`public/engine/models/`) รันด้วย onnxruntime-web
 - ผลตรงกับ PyTorch 3,193/3,200 ช่องบน `data/Test` — ส่วนที่ต่างมาจาก OpenCV คนละเวอร์ชัน (Pyodide มี 4.9) → **ทีมโมเดลควรวัดผลด้วย OpenCV 4.9 ด้วย**
 - ทีมโมเดลแก้โค้ด/เทรนใหม่ → อัปเดต commit ใน `engine.js` และแปลง ONNX ใหม่
 

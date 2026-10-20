@@ -41,8 +41,8 @@ git push -u origin feat/ชื่องาน
 
 | ส่วน | ไฟล์/โฟลเดอร์ | ผู้รับผิดชอบ |
 |---|---|---|
-| หน้า app | `apps/` | [ ] |
-| จุดเชื่อมโมเดล | `apps/js/pipeline.js`, `docs/ENGINE.md` | [ ] ร่วมกับทีมโมเดล |
+| หน้า app | `public/` (`dashboard/` · `app/` · `shared/`) | [ ] |
+| จุดเชื่อมโมเดล | `public/shared/pipeline.js`, `docs/ENGINE.md` | [ ] ร่วมกับทีมโมเดล |
 | โมเดล | repo [Computer-Vision](https://github.com/67160328/Computer-Vision) | [ ] |
 | เอกสาร/สไลด์ | `docs/` | [ ] |
 
