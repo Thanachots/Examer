@@ -1,0 +1,2257 @@
+{
+ "summary": [
+  {
+   "ชุด": "ทั้งหมด",
+   "n": 150,
+   "IoU≥0.95": "149/150 CI(96.3, 99.9)",
+   "IoU กลาง": 0.9908,
+   "IoU ต่ำสุด": 0.8947,
+   "ทิศถูก": "150/150 CI(97.5, 100.0)",
+   "QC ผ่าน": "143/150 CI(90.7, 97.7)",
+   "หมุด BR/BL ≤ 8 px": "143/150",
+   "หมุด กลาง BL/BR/TR": [
+    2.6,
+    2.6,
+    3.7
+   ],
+   "QC ผ่านแต่ label บอกผิด (พังเงียบ)": 6
+  },
+  {
+   "ชุด": "เปล่า/กระจก",
+   "n": 104,
+   "IoU≥0.95": "103/104 CI(94.8, 99.8)",
+   "IoU กลาง": 0.9911,
+   "IoU ต่ำสุด": 0.8947,
+   "ทิศถูก": "104/104 CI(96.4, 100.0)",
+   "QC ผ่าน": "97/104 CI(86.8, 96.7)",
+   "หมุด BR/BL ≤ 8 px": "98/104",
+   "หมุด กลาง BL/BR/TR": [
+    2.2,
+    2.7,
+    3.6
+   ],
+   "QC ผ่านแต่ label บอกผิด (พังเงียบ)": 5
+  },
+  {
+   "ชุด": "ลายมือ",
+   "n": 46,
+   "IoU≥0.95": "46/46 CI(92.3, 100.0)",
+   "IoU กลาง": 0.9861,
+   "IoU ต่ำสุด": 0.9789,
+   "ทิศถูก": "46/46 CI(92.3, 100.0)",
+   "QC ผ่าน": "46/46 CI(92.3, 100.0)",
+   "หมุด BR/BL ≤ 8 px": "45/46",
+   "หมุด กลาง BL/BR/TR": [
+    3.3,
+    2.5,
+    4.0
+   ],
+   "QC ผ่านแต่ label บอกผิด (พังเงียบ)": 1
+  }
+ ],
+ "label_suspect": [],
+ "skipped": [],
+ "per_sheet": [
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7864.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9923414647814999,
+   "iou_quad": 0.9926350404470654,
+   "orient_ok": true,
+   "mark_err": [
+    0.751681923866272,
+    2.4154765605926514,
+    8.01098918914795
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7866.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9912099277181078,
+   "iou_quad": 0.9901804010214748,
+   "orient_ok": true,
+   "mark_err": [
+    2.4518585205078125,
+    3.4101383686065674,
+    5.123998641967773
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7867.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9918431369633053,
+   "iou_quad": 0.991944287272869,
+   "orient_ok": true,
+   "mark_err": [
+    5.609151840209961,
+    1.666684627532959,
+    4.1279730796813965
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7868.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9895905768162755,
+   "iou_quad": 0.9906128187120157,
+   "orient_ok": true,
+   "mark_err": [
+    4.637215614318848,
+    1.0306981801986694,
+    3.947328805923462
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7871.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.991251001282367,
+   "iou_quad": 0.9948949308151765,
+   "orient_ok": true,
+   "mark_err": [
+    6.013998031616211,
+    3.7322254180908203,
+    5.613336563110352
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7872.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9884742027170358,
+   "iou_quad": 0.9968033705745856,
+   "orient_ok": true,
+   "mark_err": [
+    2.3202016353607178,
+    0.42927178740501404,
+    4.501591205596924
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7881.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9904921259871692,
+   "iou_quad": 0.9925113285993901,
+   "orient_ok": true,
+   "mark_err": [
+    3.390937089920044,
+    2.4927010536193848,
+    5.924353122711182
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7882.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9898767062322268,
+   "iou_quad": 0.9970901396998693,
+   "orient_ok": true,
+   "mark_err": [
+    4.176766872406006,
+    2.3292555809020996,
+    6.416954517364502
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7884.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9896274866111779,
+   "iou_quad": 0.9963046850328048,
+   "orient_ok": true,
+   "mark_err": [
+    4.3032684326171875,
+    4.160778999328613,
+    7.554154396057129
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7885.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9900396086281328,
+   "iou_quad": 0.9965802156917463,
+   "orient_ok": true,
+   "mark_err": [
+    4.00779914855957,
+    2.1223697662353516,
+    7.8137526512146
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7887.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9934844196776927,
+   "iou_quad": 0.9974607084296313,
+   "orient_ok": true,
+   "mark_err": [
+    2.346867322921753,
+    1.7467767000198364,
+    5.869389057159424
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7889.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9909379268700016,
+   "iou_quad": 0.9973808548543837,
+   "orient_ok": true,
+   "mark_err": [
+    4.429622173309326,
+    1.1015747785568237,
+    3.206373453140259
+   ]
+  },
+  {
+   "file": "jpg/Edge (เขียนคำผิด)/IMG_7893.jpg",
+   "folder": "Edge (เขียนคำผิด)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9890249851100735,
+   "iou_quad": 0.9972950312495166,
+   "orient_ok": true,
+   "mark_err": [
+    3.09627366065979,
+    7.914642333984375,
+    7.219099521636963
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_8993.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9839257124174805,
+   "iou_quad": 0.9923362091849645,
+   "orient_ok": true,
+   "mark_err": [
+    1.4872618913650513,
+    5.852199077606201,
+    3.1567580699920654
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_8994.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.981974159304453,
+   "iou_quad": 0.9973676606648988,
+   "orient_ok": true,
+   "mark_err": [
+    5.300302505493164,
+    2.517007827758789,
+    2.5602681636810303
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_8995.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9803887751173924,
+   "iou_quad": 0.9837140302318386,
+   "orient_ok": true,
+   "mark_err": [
+    4.464568138122559,
+    0.17596358060836792,
+    6.504293918609619
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_8999.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.980113275152914,
+   "orient_ok": true,
+   "mark_err": [
+    1.7458299398422241,
+    3.3984434604644775,
+    3.3468565940856934
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_9001.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9854606473738573,
+   "iou_quad": 0.9960139297911839,
+   "orient_ok": true,
+   "mark_err": [
+    1.3410353660583496,
+    2.653005838394165,
+    5.297310829162598
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_9010.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9850085437135441,
+   "iou_quad": 0.9944151939058729,
+   "orient_ok": true,
+   "mark_err": [
+    4.940377235412598,
+    3.3185060024261475,
+    3.6662957668304443
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_9011.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9809865432087103,
+   "orient_ok": true,
+   "mark_err": [
+    4.104825973510742,
+    5.1940999031066895,
+    1.2203696966171265
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_9013.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.978901116076904,
+   "iou_quad": 0.9910905408095438,
+   "orient_ok": true,
+   "mark_err": [
+    5.472271919250488,
+    2.838679552078247,
+    1.0432192087173462
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_9014.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9848313546225972,
+   "iou_quad": 0.9951973783647994,
+   "orient_ok": true,
+   "mark_err": [
+    3.4895825386047363,
+    2.1032280921936035,
+    3.5292232036590576
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_9016.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9847383040898074,
+   "iou_quad": 0.9955452184073,
+   "orient_ok": true,
+   "mark_err": [
+    5.426653861999512,
+    0.6228238344192505,
+    3.5076661109924316
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_9021.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9811121560379683,
+   "iou_quad": 0.996375324439429,
+   "orient_ok": true,
+   "mark_err": [
+    6.083669185638428,
+    2.9357662200927734,
+    1.262845754623413
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_9023.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9841978251879999,
+   "iou_quad": 0.9966850149351266,
+   "orient_ok": true,
+   "mark_err": [
+    6.355654716491699,
+    0.3169417381286621,
+    2.4668772220611572
+   ]
+  },
+  {
+   "file": "jpg/Horizontal (เขียนเรียง)/IMG_9025.jpg",
+   "folder": "Horizontal (เขียนเรียง)",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9836097398314705,
+   "orient_ok": true,
+   "mark_err": [
+    3.739635705947876,
+    2.9868581295013428,
+    2.781015634536743
+   ]
+  },
+  {
+   "file": "jpg/Test (คําศัพท์)/IMG_9385.jpg",
+   "folder": "Test (คําศัพท์)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9908233190786201,
+   "iou_quad": 0.9964899061421643,
+   "orient_ok": true,
+   "mark_err": [
+    4.10896110534668,
+    0.18928393721580505,
+    2.008175849914551
+   ]
+  },
+  {
+   "file": "jpg/Test (คําศัพท์)/IMG_9387.jpg",
+   "folder": "Test (คําศัพท์)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9877970034566624,
+   "iou_quad": 0.9965608380453314,
+   "orient_ok": true,
+   "mark_err": [
+    1.9546934366226196,
+    1.3285236358642578,
+    3.1117238998413086
+   ]
+  },
+  {
+   "file": "jpg/Test (คําศัพท์)/IMG_9388.jpg",
+   "folder": "Test (คําศัพท์)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.990155964606712,
+   "iou_quad": 0.9973061114932746,
+   "orient_ok": true,
+   "mark_err": [
+    6.485967636108398,
+    4.319948673248291,
+    1.9972352981567383
+   ]
+  },
+  {
+   "file": "jpg/Test (คําศัพท์)/IMG_9389.jpg",
+   "folder": "Test (คําศัพท์)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9859546906856433,
+   "iou_quad": 0.9968995249159276,
+   "orient_ok": true,
+   "mark_err": [
+    2.451286554336548,
+    2.399550199508667,
+    3.2175793647766113
+   ]
+  },
+  {
+   "file": "jpg/Test (คําศัพท์)/IMG_9392.jpg",
+   "folder": "Test (คําศัพท์)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9903069027530204,
+   "iou_quad": 0.9918926685521942,
+   "orient_ok": true,
+   "mark_err": [
+    4.681237697601318,
+    5.76340913772583,
+    4.287079334259033
+   ]
+  },
+  {
+   "file": "jpg/Test (คําศัพท์)/IMG_9394.jpg",
+   "folder": "Test (คําศัพท์)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9915886170599884,
+   "iou_quad": 0.9946107951853984,
+   "orient_ok": true,
+   "mark_err": [
+    4.215254783630371,
+    2.160606622695923,
+    1.8680676221847534
+   ]
+  },
+  {
+   "file": "jpg/Test (คําศัพท์)/IMG_9398.jpg",
+   "folder": "Test (คําศัพท์)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9922098754548148,
+   "iou_quad": 0.9945616128213588,
+   "orient_ok": true,
+   "mark_err": [
+    4.658143043518066,
+    3.2306411266326904,
+    6.200000762939453
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9028.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9811824945324457,
+   "iou_quad": 0.992386631476237,
+   "orient_ok": true,
+   "mark_err": [
+    2.541701316833496,
+    4.468491554260254,
+    6.113367557525635
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9029.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9806380246225639,
+   "iou_quad": 0.995995878327145,
+   "orient_ok": true,
+   "mark_err": [
+    3.7239673137664795,
+    4.020205497741699,
+    4.891200065612793
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9030.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.98380604164211,
+   "iou_quad": 0.995407749583202,
+   "orient_ok": true,
+   "mark_err": [
+    2.6167428493499756,
+    5.090782642364502,
+    0.5948715209960938
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9032.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9831414165306354,
+   "iou_quad": 0.9961402709251203,
+   "orient_ok": true,
+   "mark_err": [
+    4.860732078552246,
+    0.9772020578384399,
+    2.66229248046875
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9034.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9901153849112108,
+   "iou_quad": 0.9835805705426961,
+   "orient_ok": true,
+   "mark_err": [
+    5.1179046630859375,
+    1.9221471548080444,
+    2.7760934829711914
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9036.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.985072891548223,
+   "iou_quad": 0.9941524098658858,
+   "orient_ok": true,
+   "mark_err": [
+    4.044579029083252,
+    1.6840438842773438,
+    1.9954699277877808
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9037.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9864840724600124,
+   "iou_quad": 0.9961097251682165,
+   "orient_ok": true,
+   "mark_err": [
+    2.8480443954467773,
+    0.6048235893249512,
+    0.8364731669425964
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9038.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9841361878236382,
+   "iou_quad": 0.9952972657344119,
+   "orient_ok": true,
+   "mark_err": [
+    2.6210358142852783,
+    2.6228015422821045,
+    1.9283504486083984
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9046.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9862588078543318,
+   "iou_quad": 0.9934233803597439,
+   "orient_ok": true,
+   "mark_err": [
+    2.841076612472534,
+    2.495401382446289,
+    2.7024519443511963
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9050.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9847745583859058,
+   "iou_quad": 0.9971529204266033,
+   "orient_ok": true,
+   "mark_err": [
+    4.2572760581970215,
+    1.3532159328460693,
+    1.2093610763549805
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9052.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9847403030198774,
+   "orient_ok": true,
+   "mark_err": [
+    2.893103837966919,
+    3.348517656326294,
+    1.002407431602478
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9053.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.98269126615676,
+   "iou_quad": 0.9922130653451036,
+   "orient_ok": true,
+   "mark_err": [
+    2.154573678970337,
+    5.140606880187988,
+    2.1829445362091064
+   ]
+  },
+  {
+   "file": "jpg/Words (เขียนเป็นคำ)/IMG_9057.jpg",
+   "folder": "Words (เขียนเป็นคำ)",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9927743154766556,
+   "orient_ok": true,
+   "mark_err": [
+    3.493706464767456,
+    6.762906074523926,
+    4.901376247406006
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9138.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9909901877083592,
+   "iou_quad": 0.9941486682622981,
+   "orient_ok": true,
+   "mark_err": [
+    3.3659112453460693,
+    3.326150894165039,
+    1.0756405591964722
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9141.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9914997420602318,
+   "iou_quad": 0.9952339412061052,
+   "orient_ok": true,
+   "mark_err": [
+    4.259400844573975,
+    1.599773645401001,
+    2.085143566131592
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9142.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.992485971721443,
+   "iou_quad": 0.9962746535927763,
+   "orient_ok": true,
+   "mark_err": [
+    6.73353910446167,
+    2.111358880996704,
+    3.1425623893737793
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9144.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9922500054983405,
+   "orient_ok": true,
+   "mark_err": [
+    4.885876178741455,
+    2.9168972969055176,
+    8.033221244812012
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9146.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9925045876563399,
+   "orient_ok": true,
+   "mark_err": [
+    0.9100466370582581,
+    0.32737573981285095,
+    1.7788325548171997
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9147.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": false,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9904692051497037,
+   "iou_quad": 0.9972216269115334,
+   "orient_ok": true,
+   "mark_err": [
+    2.2075424194335938,
+    2.4624650478363037,
+    1.7817256450653076
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9148.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9911869252616476,
+   "iou_quad": 0.9966085637508816,
+   "orient_ok": true,
+   "mark_err": [
+    4.080149173736572,
+    0.14508157968521118,
+    1.5295469760894775
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9150.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9897537320797465,
+   "orient_ok": true,
+   "mark_err": [
+    4.624204158782959,
+    2.306856632232666,
+    2.3985164165496826
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9153.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9903817880107025,
+   "orient_ok": true,
+   "mark_err": [
+    5.248383522033691,
+    3.108778953552246,
+    1.7541780471801758
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9155.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9905343625509472,
+   "orient_ok": true,
+   "mark_err": [
+    3.9602115154266357,
+    2.811352252960205,
+    3.0364105701446533
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9158.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9927529909971592,
+   "orient_ok": true,
+   "mark_err": [
+    3.9945297241210938,
+    0.8674362897872925,
+    0.024869484826922417
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9161.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.991142352416159,
+   "iou_quad": 0.9896367093887801,
+   "orient_ok": true,
+   "mark_err": [
+    4.353423118591309,
+    0.7036016583442688,
+    0.5527880787849426
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9165.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9895784293975494,
+   "orient_ok": true,
+   "mark_err": [
+    2.2589235305786133,
+    1.016918420791626,
+    4.794913291931152
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9166.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9899714593423705,
+   "orient_ok": true,
+   "mark_err": [
+    4.534587860107422,
+    2.6532750129699707,
+    0.5624387264251709
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9169.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": false,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9913945214615957,
+   "orient_ok": true,
+   "mark_err": [
+    3.1260929107666016,
+    2.2897098064422607,
+    1.7013216018676758
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9170.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9922899814223941,
+   "iou_quad": 0.9948084274007081,
+   "orient_ok": true,
+   "mark_err": [
+    2.4174985885620117,
+    5.985010623931885,
+    0.6292523145675659
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9171.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9924220185556203,
+   "iou_quad": 0.9952084326135346,
+   "orient_ok": true,
+   "mark_err": [
+    3.520219087600708,
+    4.368468284606934,
+    2.9165711402893066
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9173.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9922523562400537,
+   "iou_quad": 0.9948451116014103,
+   "orient_ok": true,
+   "mark_err": [
+    4.963510513305664,
+    2.0551562309265137,
+    5.486814975738525
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9179.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9914110567886225,
+   "orient_ok": true,
+   "mark_err": [
+    5.549172878265381,
+    3.0225908756256104,
+    0.5902957916259766
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9184.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9924258354542989,
+   "orient_ok": true,
+   "mark_err": [
+    3.7505271434783936,
+    1.834640622138977,
+    0.5837859511375427
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9185.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9917275113380525,
+   "iou_quad": 0.9970430545702414,
+   "orient_ok": true,
+   "mark_err": [
+    4.311439514160156,
+    4.293820858001709,
+    4.01809024810791
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9187.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9926078305326143,
+   "iou_quad": 0.9960723239777605,
+   "orient_ok": true,
+   "mark_err": [
+    6.448550701141357,
+    6.236580848693848,
+    3.026820182800293
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9189.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9910689082257575,
+   "orient_ok": true,
+   "mark_err": [
+    3.5869393348693848,
+    1.7049206495285034,
+    5.524073600769043
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9190.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9911685029464254,
+   "orient_ok": true,
+   "mark_err": [
+    3.397972345352173,
+    1.8374253511428833,
+    4.035762310028076
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9193.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9925612613117026,
+   "iou_quad": 0.996138096910508,
+   "orient_ok": true,
+   "mark_err": [
+    7.793509006500244,
+    1.4491407871246338,
+    3.5397231578826904
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9194.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9927125523805049,
+   "iou_quad": 0.9966165268419981,
+   "orient_ok": true,
+   "mark_err": [
+    6.630152702331543,
+    6.3024582862854,
+    2.0952036380767822
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9198.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9899041255837043,
+   "iou_quad": 0.996652621677552,
+   "orient_ok": true,
+   "mark_err": [
+    2.1107490062713623,
+    6.630547046661377,
+    1.8712621927261353
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9199.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9916439718154307,
+   "iou_quad": 0.9959409835898213,
+   "orient_ok": true,
+   "mark_err": [
+    1.3317677974700928,
+    2.052367925643921,
+    0.7708243131637573
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9200.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9917099407400578,
+   "iou_quad": 0.995632867552252,
+   "orient_ok": true,
+   "mark_err": [
+    5.089564323425293,
+    4.719573497772217,
+    4.165069103240967
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9202.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9924284304993005,
+   "iou_quad": 0.9961296894088043,
+   "orient_ok": true,
+   "mark_err": [
+    4.794193744659424,
+    0.6442838311195374,
+    3.1634466648101807
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9205.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9903570663900287,
+   "iou_quad": 0.9972047301666105,
+   "orient_ok": true,
+   "mark_err": [
+    2.407376289367676,
+    1.5426064729690552,
+    3.532654047012329
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9206.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.991279112257507,
+   "orient_ok": true,
+   "mark_err": [
+    2.6134557723999023,
+    0.8749605417251587,
+    4.84834098815918
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9211.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9897247080578184,
+   "orient_ok": true,
+   "mark_err": [
+    2.6236941814422607,
+    4.1792826652526855,
+    2.5557947158813477
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9214.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9914218625537863,
+   "iou_quad": 0.9975264780377793,
+   "orient_ok": true,
+   "mark_err": [
+    1.6707823276519775,
+    1.9986628293991089,
+    1.148432731628418
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9221.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9911338647329583,
+   "iou_quad": 0.9962404448148496,
+   "orient_ok": true,
+   "mark_err": [
+    2.850947141647339,
+    3.1748008728027344,
+    5.349332809448242
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9223.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9916229820971447,
+   "orient_ok": true,
+   "mark_err": [
+    1.7494432926177979,
+    0.8864888548851013,
+    0.7044859528541565
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9224.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": false,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.8946932588440072,
+   "orient_ok": true,
+   "mark_err": [
+    5.930123805999756,
+    4.223611831665039,
+    10.477731704711914
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9225.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9917076850110355,
+   "orient_ok": true,
+   "mark_err": [
+    4.209967613220215,
+    2.4947590827941895,
+    4.074747085571289
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9227.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9911475272838586,
+   "orient_ok": true,
+   "mark_err": [
+    5.7145843505859375,
+    3.091191053390503,
+    2.044905185699463
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9228.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9911037449163118,
+   "iou_quad": 0.9967755676366701,
+   "orient_ok": true,
+   "mark_err": [
+    7.950499057769775,
+    5.5259294509887695,
+    1.2557344436645508
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9229.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9905350196280533,
+   "iou_quad": 0.9957986782277981,
+   "orient_ok": true,
+   "mark_err": [
+    5.137885570526123,
+    2.81178879737854,
+    0.7914612293243408
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9232.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.99210992403064,
+   "iou_quad": 0.9812620404528106,
+   "orient_ok": true,
+   "mark_err": [
+    2.065089225769043,
+    6.265181064605713,
+    6.350595951080322
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9233.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.99231668853898,
+   "iou_quad": 0.9960771978762041,
+   "orient_ok": true,
+   "mark_err": [
+    4.023374557495117,
+    5.529733180999756,
+    3.5234434604644775
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9239.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9910184688352702,
+   "orient_ok": true,
+   "mark_err": [
+    3.4719228744506836,
+    3.4390757083892822,
+    0.5829786658287048
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9240.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9907210012219915,
+   "orient_ok": true,
+   "mark_err": [
+    4.714167594909668,
+    4.203057765960693,
+    0.47749558091163635
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9248.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9909339294261856,
+   "orient_ok": true,
+   "mark_err": [
+    4.848473072052002,
+    3.420243978500366,
+    0.8648774027824402
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9249.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9916152726824061,
+   "iou_quad": 0.9957108451864306,
+   "orient_ok": true,
+   "mark_err": [
+    4.340385437011719,
+    5.6430182456970215,
+    4.605708122253418
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9250.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9906432224037651,
+   "iou_quad": 0.9944381991425534,
+   "orient_ok": true,
+   "mark_err": [
+    2.0393855571746826,
+    3.2100603580474854,
+    5.4194560050964355
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9258.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": false,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9907171071309704,
+   "orient_ok": true,
+   "mark_err": [
+    3.6288249492645264,
+    3.9181714057922363,
+    1.1175137758255005
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9259.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": false,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9910293750284356,
+   "orient_ok": true,
+   "mark_err": [
+    3.8437013626098633,
+    1.844269871711731,
+    1.2950892448425293
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9262.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9910899528713045,
+   "orient_ok": true,
+   "mark_err": [
+    4.685919761657715,
+    3.447859048843384,
+    0.21094967424869537
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9268.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9891393288189293,
+   "iou_quad": 0.9971962988744385,
+   "orient_ok": true,
+   "mark_err": [
+    1.7989751100540161,
+    5.640651702880859,
+    1.5184412002563477
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9269.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9900214130823198,
+   "orient_ok": true,
+   "mark_err": [
+    5.092394828796387,
+    3.5882396697998047,
+    3.435673952102661
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9273.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9918633781348466,
+   "iou_quad": 0.9965738070808157,
+   "orient_ok": true,
+   "mark_err": [
+    7.975825309753418,
+    2.751868724822998,
+    2.0630674362182617
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9274.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9901614180635046,
+   "iou_quad": 0.9966985930739994,
+   "orient_ok": true,
+   "mark_err": [
+    2.207131862640381,
+    2.3943941593170166,
+    3.3381800651550293
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9275.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9909334666355482,
+   "orient_ok": true,
+   "mark_err": [
+    1.2698084115982056,
+    4.675992012023926,
+    1.892214298248291
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9277.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9912348705573792,
+   "iou_quad": 0.9939330805387561,
+   "orient_ok": true,
+   "mark_err": [
+    3.6545369625091553,
+    4.0489959716796875,
+    3.842602252960205
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9279.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9922883475297151,
+   "iou_quad": 0.9936668022749044,
+   "orient_ok": true,
+   "mark_err": [
+    4.988786220550537,
+    4.062801837921143,
+    1.6120431423187256
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9281.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": false,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9914101170320793,
+   "orient_ok": true,
+   "mark_err": [
+    3.7578485012054443,
+    1.667677402496338,
+    2.5879924297332764
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9286.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9906016028287907,
+   "orient_ok": true,
+   "mark_err": [
+    6.613595485687256,
+    2.930366039276123,
+    1.5462313890457153
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9289.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9928299335820281,
+   "orient_ok": true,
+   "mark_err": [
+    2.5910592079162598,
+    1.4198664426803589,
+    1.8692748546600342
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9292.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9906061878582119,
+   "orient_ok": true,
+   "mark_err": [
+    1.3876194953918457,
+    1.4177169799804688,
+    1.0236531496047974
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9294.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9902677724833621,
+   "iou_quad": 0.9937576865477489,
+   "orient_ok": true,
+   "mark_err": [
+    3.8304686546325684,
+    2.633511543273926,
+    0.8494418859481812
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9296.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9904669161644619,
+   "iou_quad": 0.9963819854622878,
+   "orient_ok": true,
+   "mark_err": [
+    3.314246892929077,
+    3.545280933380127,
+    3.465388298034668
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9297.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9908200625149746,
+   "iou_quad": 0.9900405201585838,
+   "orient_ok": true,
+   "mark_err": [
+    4.5170464515686035,
+    1.542502999305725,
+    2.22729754447937
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9298.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9901518546824848,
+   "iou_quad": 0.9976970699114525,
+   "orient_ok": true,
+   "mark_err": [
+    4.270553112030029,
+    2.396242380142212,
+    4.023812294006348
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9299.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9926037859951498,
+   "iou_quad": 0.9960698962025115,
+   "orient_ok": true,
+   "mark_err": [
+    4.5282697677612305,
+    1.878266453742981,
+    2.221174716949463
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9301.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9889440750546951,
+   "iou_quad": 0.995496804389186,
+   "orient_ok": true,
+   "mark_err": [
+    3.637247323989868,
+    8.541543960571289,
+    1.8946830034255981
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9302.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9900372250168897,
+   "orient_ok": true,
+   "mark_err": [
+    4.340095043182373,
+    4.727971076965332,
+    1.9284539222717285
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9303.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9934396742298734,
+   "orient_ok": true,
+   "mark_err": [
+    2.4835104942321777,
+    0.19603215157985687,
+    2.8777477741241455
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9305.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9912079619985589,
+   "orient_ok": true,
+   "mark_err": [
+    1.266903042793274,
+    0.5552924871444702,
+    0.31331104040145874
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9308.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9900011670993876,
+   "iou_quad": 0.9969039572069329,
+   "orient_ok": true,
+   "mark_err": [
+    0.9580853581428528,
+    2.246692657470703,
+    1.8039727210998535
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9309.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9900245092175405,
+   "iou_quad": 0.9950812288830837,
+   "orient_ok": true,
+   "mark_err": [
+    3.6213431358337402,
+    1.879193902015686,
+    3.7512617111206055
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9310.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9920232227327663,
+   "iou_quad": 0.9961197322997838,
+   "orient_ok": true,
+   "mark_err": [
+    2.1119041442871094,
+    2.4446887969970703,
+    0.8685213327407837
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9312.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9916164870731027,
+   "iou_quad": 0.9948780868395323,
+   "orient_ok": true,
+   "mark_err": [
+    4.196213722229004,
+    2.7007153034210205,
+    2.832581043243408
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9313.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9908396126841711,
+   "iou_quad": 0.9955177444123814,
+   "orient_ok": true,
+   "mark_err": [
+    2.361685276031494,
+    0.4529171884059906,
+    6.0570878982543945
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9314.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": false,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9904050385718642,
+   "iou_quad": 0.9955352632816106,
+   "orient_ok": true,
+   "mark_err": [
+    1.0305931568145752,
+    1.4718544483184814,
+    2.1917123794555664
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9315.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9912462873370328,
+   "orient_ok": true,
+   "mark_err": [
+    1.798376202583313,
+    3.680842876434326,
+    2.858670473098755
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9316.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9924041492377449,
+   "orient_ok": true,
+   "mark_err": [
+    4.333847522735596,
+    3.803914785385132,
+    0.7136085629463196
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9320.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.990609003334902,
+   "iou_quad": 0.9961296638992266,
+   "orient_ok": true,
+   "mark_err": [
+    5.1151533126831055,
+    1.294437289237976,
+    0.17431098222732544
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9322.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9901084499459648,
+   "iou_quad": 0.9974615874256733,
+   "orient_ok": true,
+   "mark_err": [
+    2.646761178970337,
+    2.1821959018707275,
+    1.9222755432128906
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9331.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9927707113764208,
+   "orient_ok": true,
+   "mark_err": [
+    2.8945257663726807,
+    2.268087148666382,
+    1.1865752935409546
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9334.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.99246814165664,
+   "iou_quad": 0.9944499151137657,
+   "orient_ok": true,
+   "mark_err": [
+    3.7565011978149414,
+    3.9254729747772217,
+    0.7151665687561035
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9338.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9932988518142273,
+   "orient_ok": true,
+   "mark_err": [
+    2.236679792404175,
+    2.5619750022888184,
+    3.9546756744384766
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9339.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9902120192694828,
+   "orient_ok": true,
+   "mark_err": [
+    3.7526841163635254,
+    4.715242862701416,
+    3.323374032974243
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9340.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9929427120046895,
+   "orient_ok": true,
+   "mark_err": [
+    1.3324235677719116,
+    1.6568293571472168,
+    2.633838415145874
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9345.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9919082503635048,
+   "iou_quad": 0.9947163825150627,
+   "orient_ok": true,
+   "mark_err": [
+    3.589561939239502,
+    1.9720627069473267,
+    3.5090394020080566
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9346.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9907875232235737,
+   "iou_quad": 0.9930892484681315,
+   "orient_ok": true,
+   "mark_err": [
+    2.1735384464263916,
+    2.9928996562957764,
+    8.610709190368652
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9347.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9909701414588487,
+   "orient_ok": true,
+   "mark_err": [
+    3.7434067726135254,
+    3.150120258331299,
+    2.6274423599243164
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9348.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.992487848151187,
+   "iou_quad": 0.9937544989737725,
+   "orient_ok": true,
+   "mark_err": [
+    3.5278093814849854,
+    4.899810314178467,
+    0.49376288056373596
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9351.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9908398361046172,
+   "iou_quad": 0.994733230848722,
+   "orient_ok": true,
+   "mark_err": [
+    2.822131633758545,
+    9.057938575744629,
+    3.3400447368621826
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9352.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9897350861080993,
+   "iou_quad": 0.9945329213185358,
+   "orient_ok": true,
+   "mark_err": [
+    4.818946361541748,
+    8.223954200744629,
+    2.6827051639556885
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9354.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9907723458429766,
+   "orient_ok": true,
+   "mark_err": [
+    4.227481842041016,
+    1.9117465019226074,
+    3.034663200378418
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9358.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9909541967981053,
+   "iou_quad": 0.9957202085874639,
+   "orient_ok": true,
+   "mark_err": [
+    1.5308260917663574,
+    0.6925160884857178,
+    2.815730571746826
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9360.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9903915484575028,
+   "iou_quad": 0.9963884602303209,
+   "orient_ok": true,
+   "mark_err": [
+    2.411518096923828,
+    2.803892135620117,
+    2.1741600036621094
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9365.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9913188739538024,
+   "iou_quad": 0.9956812935552856,
+   "orient_ok": true,
+   "mark_err": [
+    5.231058120727539,
+    1.854925513267517,
+    3.385622978210449
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9370.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.9907289289356013,
+   "orient_ok": true,
+   "mark_err": [
+    2.105273485183716,
+    1.3821593523025513,
+    1.7645658254623413
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9373.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9898134850562045,
+   "iou_quad": 0.9958586196895707,
+   "orient_ok": true,
+   "mark_err": [
+    1.8001351356506348,
+    1.2140263319015503,
+    1.9079025983810425
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9377.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9915644689717126,
+   "iou_quad": 0.9945765465146985,
+   "orient_ok": true,
+   "mark_err": [
+    2.04660701751709,
+    3.2113070487976074,
+    0.23826639354228973
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9378.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9898195298319816,
+   "iou_quad": 0.9915317438384558,
+   "orient_ok": true,
+   "mark_err": [
+    1.8699828386306763,
+    4.818235874176025,
+    3.124608039855957
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9379.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "markers",
+   "label_ok": true,
+   "iou_page": 0.991129118012908,
+   "orient_ok": true,
+   "mark_err": [
+    3.375196933746338,
+    3.6294755935668945,
+    1.673781394958496
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9380.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9916393525443363,
+   "iou_quad": 0.9960343552456935,
+   "orient_ok": true,
+   "mark_err": [
+    3.4593076705932617,
+    3.6087779998779297,
+    2.41538405418396
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9381.jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9927329109944291,
+   "iou_quad": 0.9958637895501514,
+   "orient_ok": true,
+   "mark_err": [
+    4.199551105499268,
+    1.8914966583251953,
+    2.7764618396759033
+   ]
+  },
+  {
+   "file": "jpg/0.กระดาษเปล่า/กระดาษเปล่า 2/IMG_9382(1).jpg",
+   "folder": "กระดาษเปล่า 2",
+   "qc_pass": true,
+   "path": "paper",
+   "label_ok": true,
+   "iou_page": 0.9898775530031377,
+   "iou_quad": 0.9835982942341718,
+   "orient_ok": true,
+   "mark_err": [
+    2.255352735519409,
+    0.8431610465049744,
+    6.532728672027588
+   ]
+  }
+ ]
+}

@@ -33,6 +33,10 @@ const Store = (() => {
       rq.onerror = () => rej(rq.error);
     });
 
+  // เขียน/ลบ: รอให้ transaction "complete" (ลงดิสก์แล้ว) ไม่ใช่แค่คำสั่งสำเร็จ
+  // ไม่งั้นปิด/รีโหลดหน้าทันทีหลังบันทึก ข้อมูลที่ยังไม่ commit หายได้ (ทดสอบ: เขียน 378 แผ่นแล้วรีโหลด เหลือ 152)
+  const done = (tx) => new Promise((res, rej) => { tx.oncomplete = () => res(); tx.onerror = tx.onabort = () => rej(tx.error); });
+
   async function os(name, mode) {
     const db = await open();
     return db ? db.transaction(name, mode).objectStore(name) : null;
@@ -44,7 +48,7 @@ const Store = (() => {
     },
     async put(name, obj) {
       const s = await os(name, "readwrite");
-      if (s) await req(s.put(obj));
+      if (s) { s.put(obj); await done(s.transaction); }
       else mem[name].set(obj.id, obj);
       return obj;
     },
@@ -58,7 +62,7 @@ const Store = (() => {
     },
     async del(name, id) {
       const s = await os(name, "readwrite");
-      if (s) await req(s.delete(id));
+      if (s) { s.delete(id); await done(s.transaction); }
       else mem[name].delete(id);
     },
     async sheetsOf(examId) {
@@ -82,7 +86,7 @@ const Store = (() => {
 const Settings = (() => {
   const KEY = "examer.settings";
   const defaults = {
-    engine: "browser",   // browser = โมเดลจริงในเบราว์เซอร์ · mock = โหมดจำลอง
+    engine: "mock",      // ยังไม่ได้ต่อโมเดลจริง → โหมดจำลองเท่านั้น [claude/gelatin · 2026-10-28]
     lowConf: 0.6,        // ต่ำกว่านี้ → ส่งครูตรวจทาน
     lowercase: "upper",  // upper = นับเป็นพิมพ์ใหญ่ · wrong = ผิด
     gap: "join",         // join = ต่อกัน · wrong = ผิด   (เว้นช่องกลางคำ)

@@ -19,13 +19,15 @@
 - ก่อนแก้ไฟล์ส่วนกลาง (README, `docs/`, `public/shared/pipeline.js`) บอกในทีมก่อน  [claude/gelatin · 2026-10-19] [แก้ apps/ → public/: claude/gelatin · 2026-10-21]
 
 ## โครงสร้างไฟล์
-- `public/` = หน้าเว็บที่ deploy (HTML/CSS/JS ล้วน ไม่มี build): `dashboard/` เว็บฝ่ายวิชาการ · `app/` แอปครู · `shared/` ใช้ร่วม · `engine/` โมเดล · `legacy/` = UI เดิมเก็บไว้ดู · `docs/` = เอกสารให้คนอ่าน · `ai-agents/` = ความจำของ agent  [claude/gelatin · 2026-10-19] [แก้ apps/ → public/: claude/gelatin · 2026-10-21]
+- `public/` = หน้าเว็บที่ deploy (HTML/CSS/JS ล้วน ไม่มี build): `dashboard/` เว็บฝ่ายวิชาการ · `app/` แอปครู · `shared/` ใช้ร่วม · `engine/` โมเดล · `model/` = โมเดลตัวจริงชุดเดียว (Python + ONNX) · `research/` = งานพัฒนา/วัดผลของแต่ละเฟส · `legacy/` = UI เดิมเก็บไว้ดู · `docs/` = เอกสารให้คนอ่าน · `ai-agents/` = ความจำของ agent  [claude/gelatin · 2026-10-19] [แก้ apps/ → public/: claude/gelatin · 2026-10-21] [แก้ เพิ่ม model/ research/: claude/gelatin · 2026-10-28]
+- โค้ดโมเดลมีชุดเดียวที่ `model/` — เว็บ/แอปเอาไปใช้ต่อ ห้ามก๊อปเก็บซ้ำในโฟลเดอร์อื่น · ไฟล์ `_locked` และโมเดลที่มี sha256 ห้ามแก้ (ตัวเลขในรายงานพึ่งไฟล์เหล่านี้) [claude/gelatin · 2026-10-28]
+- `_review/` = ของที่ยังไม่ได้รวม / อาจไม่ใช้ (ไม่ขึ้น git) — ให้ผู้ใช้ตรวจก่อน ห้ามลบเอง [claude/gelatin · 2026-10-28]
 - `app/` ห้ามเรียกโค้ดใน `dashboard/` (และกลับกัน) — ของที่ใช้ทั้งสองฝั่งไว้ `shared/` · แอปมือถือจริงจะรวมแค่ `app/` + `shared/` + `engine/`  [claude/gelatin · 2026-10-21]
 - อย่าสร้างโฟลเดอร์ใหม่ที่รากโปรเจค โดยไม่ถามผู้ใช้ก่อน  [claude/gelatin · 2026-10-19]
 
 ## หน้า app ↔ โมเดล
 - หน้า app เรียกโมเดลผ่าน `Pipeline.run()` ใน `public/shared/pipeline.js` จุดเดียว · รูปแบบข้อมูลตาม `docs/ENGINE.md`  [claude/gelatin · 2026-10-19] [แก้ apps/ → public/: claude/gelatin · 2026-10-21]
-- โมเดลอยู่ repo แยก ([67160328/Computer-Vision](https://github.com/67160328/Computer-Vision)) — ไม่ก๊อปโค้ดโมเดลเข้า Examer โดยไม่ได้ตกลงกัน  [claude/gelatin · 2026-10-19]
+- ~~โมเดลอยู่ repo แยก ([67160328/Computer-Vision](https://github.com/67160328/Computer-Vision)) — ไม่ก๊อปโค้ดโมเดลเข้า Examer โดยไม่ได้ตกลงกัน~~  [claude/gelatin · 2026-10-19] เลิกใช้แล้ว — engine ชุดเก่า + repo โมเดลเก่าเอาออกแล้ว [claude/gelatin · 2026-10-28]
 
 ## agent
 - ทำเฉพาะที่ผู้ใช้สั่ง — "ให้ดูคร่าวๆ" / "ลองอ่าน" = อ่านแล้วสรุป ไม่ลงมือทำ  [claude/gelatin · 2026-10-19]

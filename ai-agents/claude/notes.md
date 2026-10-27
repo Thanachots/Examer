@@ -32,5 +32,5 @@
 - repo บน GitHub (public) clone มาทดสอบใน cloud ได้ · `pip install torch` จาก PyPI ได้ (download.pytorch.org ถูกบล็อก)  [claude/gelatin · 2026-10-19]
 - ทดสอบหน้า app: `python -m http.server` + Playwright (Chromium ติดตั้งไว้แล้ว) · Google Fonts โหลดไม่ได้ใน cloud — error นี้ไม่ใช่บั๊ก  [claude/gelatin · 2026-10-19]
 - Browser pane ถูกซ่อนอยู่ → `img.decode()` อาจค้างจน timeout · อ่านข้อมูลผ่าน DOM / javascript แทน  [claude/gelatin · 2026-10-19]
-- cloud เข้า cdn.jsdelivr.net ไม่ได้ → ทดสอบ engine ด้วยไฟล์ในเครื่อง: Pyodide จาก GitHub release (`pyodide-0.26.4.tar.bz2`), onnxruntime-web จาก `npm pack` แล้วตั้ง `localStorage["examer.engineConfig"]` ชี้ไปที่ไฟล์เหล่านั้น  [claude/prame · 2026-10-19]
-- เทียบผล engine กับ PyTorch: รัน `examer_engine.py` + onnxruntime (Python) กับ `data/Test` ต้องตรง 100% · ในเบราว์เซอร์ต่างได้เล็กน้อยเพราะ OpenCV 4.9  [claude/prame · 2026-10-19]
+- ~~cloud เข้า cdn.jsdelivr.net ไม่ได้ → ทดสอบ engine ด้วยไฟล์ในเครื่อง: Pyodide จาก GitHub release (`pyodide-0.26.4.tar.bz2`), onnxruntime-web จาก `npm pack` แล้วตั้ง `localStorage["examer.engineConfig"]` ชี้ไปที่ไฟล์เหล่านั้น~~  [claude/prame · 2026-10-19] เลิกใช้แล้ว — engine ชุดเก่า + repo โมเดลเก่าเอาออกแล้ว [claude/gelatin · 2026-10-28]
+- ~~เทียบผล engine กับ PyTorch: รัน `examer_engine.py` + onnxruntime (Python) กับ `data/Test` ต้องตรง 100% · ในเบราว์เซอร์ต่างได้เล็กน้อยเพราะ OpenCV 4.9~~  [claude/prame · 2026-10-19] เลิกใช้แล้ว — engine ชุดเก่า + repo โมเดลเก่าเอาออกแล้ว [claude/gelatin · 2026-10-28]

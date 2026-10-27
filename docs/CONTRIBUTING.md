@@ -43,7 +43,7 @@ git push -u origin feat/ชื่องาน
 |---|---|---|
 | หน้า app | `public/` (`dashboard/` · `app/` · `shared/`) | [ ] |
 | จุดเชื่อมโมเดล | `public/shared/pipeline.js`, `docs/ENGINE.md` | [ ] ร่วมกับทีมโมเดล |
-| โมเดล | repo [Computer-Vision](https://github.com/67160328/Computer-Vision) | [ ] |
+| โมเดล | `model/` (+ งานวิจัยใน `research/`) ~~repo Computer-Vision~~ [claude/gelatin · 2026-10-28] | [ ] Prame |
 | เอกสาร/สไลด์ | `docs/` | [ ] |
 
 ## รู้ได้ไงว่ามี commit ใหม่

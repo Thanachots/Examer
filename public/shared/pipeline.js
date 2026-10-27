@@ -1,7 +1,7 @@
 // Examer pipeline — จุดเดียวที่หน้า app เรียกระบบตรวจ (รูปแบบข้อมูล: docs/ENGINE.md) + เกณฑ์ให้คะแนน
 //
-// โมเดลรันในเบราว์เซอร์ (js/engine.js → js/engine-worker.js) ไม่มี server
-// ตั้งค่า "โหมดจำลอง" ได้ในหน้าตั้งค่า (ใช้ทดสอบหน้าจอโดยไม่ต้องโหลดโมเดล)
+// ยังไม่ได้ต่อโมเดลจริง — ตอนนี้ใช้ผลจำลอง (mockResult) อย่างเดียว · engine ชุดเก่าถูกเอาออกแล้ว [claude/gelatin · 2026-10-28]
+// ต่อโมเดลใหม่ทีหลังที่ Pipeline.run (จุดเดียว)
 //
 // Result (ฟิลด์ที่หน้า app ใช้):
 //   student_id, subject_id, school_id: string     // ตัวเลขจากช่องรหัสส่วนหัว
@@ -22,10 +22,9 @@ const DEMO_KEY = [
 ];
 
 const Pipeline = {
-  isLive: () => Settings.get().engine === "browser",
+  isLive: () => false, // ยังไม่มีโมเดลจริง
 
   async run(file, exam, ctx = {}) {
-    if (this.isLive()) return BrowserEngine.grade(file);
     await new Promise((r) => setTimeout(r, 120));
     return mockResult(exam, ctx);
   },
