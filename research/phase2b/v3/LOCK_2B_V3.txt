@@ -1,0 +1,10 @@
+a1de84ec108dafac9adbdd0116a1a0e366caffbcc8ea6713deec686fa5ab9436  m2b_v3_locked.pt
+029b33c4555c8bdfaea00d645c54d932a7e7d21803ce7539a6438864a46615ae  train2b_v3.py
+b210527e38955e545d01cacb4cc6bab4edabe2069059a66d49338506583e272a  eval2b_v2.py
+f041c7f0f317562b26245e7edff0c88efbb257a011508832efb2bbcd798d691f  m2b_v2_net.py
+19c9c34d057dd2612bc888faae8c5624de50428afa8c69d2e02333980d294b8a  P2B_V2_PROTOCOL.md
+7021142be43b4740a52a17ea0cc5e8345c34331075790a249e8940b1cf1124e8  labels_strike.txt
+39393fb26b745ee0d7811f504e6fc51933661191b9cd72fde5d1908bdcdf7feb  overrides_valtest.json
+4d1dafbfdfb1728addde344a16e8bdac58ed7476e9e20735be6c41fa8f88d0bc  pseudo_r0.json
+c1593346b1a7fc8fa3bd981ce36cfd1a4f862eb29c714ae1cc0fe1c16d747f5e  eval2b_v2.py
+locked 2026-10-26T17:22:47+07:00 ep6 (เลือกตามเกณฑ์ Val: recall 100% · ขีดฆ่าหลอกทับเส้น 0/4000 · macro 0.9993) · ยังไม่รัน Test

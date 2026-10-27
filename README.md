@@ -233,8 +233,10 @@ Input 224×224×3
 | โฟลเดอร์ | มีอะไร |
 |---|---|
 | `public/` | หน้าเว็บที่ deploy: `dashboard/` (ฝ่ายวิชาการ) · `app/` (แอปครู) · `shared/` (ใช้ร่วม) · `engine/` (โมเดลในเบราว์เซอร์) — ดู [public/README.md](public/README.md) |
+| `model/` | โมเดลอ่านกระดาษคำตอบตัวจริง (Python + ONNX) — `read_sheet(รูป)` → JSON · ดู [model/README.md](model/README.md) |
+| `research/` | งานพัฒนา/วัดผลของแต่ละเฟส (Phase 1 / 2A / 2B / 3 · ทดสอบทั้งระบบ) — ดู [research/README.md](research/README.md) |
 | `legacy/` | UI เดิมของ Prame เก็บไว้ดู (ไม่ได้ deploy) |
-| `docs/` | เอกสารทีม: [CONTRIBUTING.md](docs/CONTRIBUTING.md) กติกา git · [ENGINE.md](docs/ENGINE.md) รูปแบบข้อมูลจากโมเดล |
+| `docs/` | เอกสารทีม: [CONTRIBUTING.md](docs/CONTRIBUTING.md) กติกา git · [ENGINE.md](docs/ENGINE.md) รูปแบบข้อมูลจากโมเดล · [DEV_GUIDE.md](docs/DEV_GUIDE.md) คู่มือพัฒนาโมเดล (ของ Prame) |
 | `.github/workflows/` | deploy + เช็ค PR |
 
-โมเดลพัฒนาอยู่ใน repo แยก: [67160328/Computer-Vision](https://github.com/67160328/Computer-Vision)
+~~โมเดลพัฒนาอยู่ใน repo แยก: [67160328/Computer-Vision](https://github.com/67160328/Computer-Vision)~~ เลิกใช้แล้ว — โมเดลอยู่ใน `model/` + `research/` ของ repo นี้

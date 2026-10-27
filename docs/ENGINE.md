@@ -3,14 +3,14 @@
 โมเดล**รันในเบราว์เซอร์** (ไม่มี server) หน้า app เรียกโมเดลผ่านจุดเดียวคือ `Pipeline.run()` ใน
 [`public/shared/pipeline.js`](../public/shared/pipeline.js) — **ผลที่ส่งกลับต้องเป็นรูปแบบในเอกสารนี้** หน้า app จะได้ไม่ต้องแก้
 
-> สถานะ: **v0.2** — มี engine จริงแล้ว (Pyodide + ONNX, ดู [public/README.md](../public/README.md)) · โหมดจำลองยังเลือกได้ในหน้าตั้งค่า
-> ถ้าทีมโมเดลจะเปลี่ยนชื่อ/ความหมายฟิลด์ ให้แก้ไฟล์นี้, `public/engine/examer_engine.py` และ `pipeline.js` ใน PR เดียวกัน
+> สถานะ: ~~**v0.2** — มี engine จริงแล้ว (Pyodide + ONNX, ดู [public/README.md](../public/README.md)) · โหมดจำลองยังเลือกได้ในหน้าตั้งค่า~~ → **ยังไม่ได้ต่อโมเดลจริง** ตอนนี้ใช้ผลจำลองอย่างเดียว · โมเดลใหม่อยู่ใน [`model/`](../model/) (ผลของโมเดลใหม่เป็นรูปแบบอื่น ต้องทำตัวแปลงตอนต่อ) [claude/gelatin · 2026-10-28]
+> ถ้าทีมโมเดลจะเปลี่ยนชื่อ/ความหมายฟิลด์ ให้แก้ไฟล์นี้~~, `public/engine/examer_engine.py`~~ และ `pipeline.js` ใน PR เดียวกัน
 
-## engine ที่ใช้ตอนนี้ (เสนอ — รอทีมยืนยัน)
-- ①② ตัดขอบ/หาช่อง: โค้ด Python เดิมของ repo โมเดล รันด้วย Pyodide + OpenCV (ดึงจาก repo โมเดลตาม commit ที่ปักไว้ใน `public/shared/engine.js`)
-- ③ อ่านตัวอักษร/ตัวเลข/ขีดฆ่า: `.pt` 3 ตัวแปลงเป็น ONNX (`public/engine/models/`) รันด้วย onnxruntime-web
-- ผลตรงกับ PyTorch 3,193/3,200 ช่องบน `data/Test` — ส่วนที่ต่างมาจาก OpenCV คนละเวอร์ชัน (Pyodide มี 4.9) → **ทีมโมเดลควรวัดผลด้วย OpenCV 4.9 ด้วย**
-- ทีมโมเดลแก้โค้ด/เทรนใหม่ → อัปเดต commit ใน `engine.js` และแปลง ONNX ใหม่
+## ~~engine ที่ใช้ตอนนี้ (เสนอ — รอทีมยืนยัน)~~ เลิกใช้แล้ว — engine ชุดเก่า + repo โมเดลเก่าเอาออกแล้ว [claude/gelatin · 2026-10-28]
+- ~~①② ตัดขอบ/หาช่อง: โค้ด Python เดิมของ repo โมเดล รันด้วย Pyodide + OpenCV (ดึงจาก repo โมเดลตาม commit ที่ปักไว้ใน `public/shared/engine.js`)~~
+- ~~③ อ่านตัวอักษร/ตัวเลข/ขีดฆ่า: `.pt` 3 ตัวแปลงเป็น ONNX (`public/engine/models/`) รันด้วย onnxruntime-web~~
+- ~~ผลตรงกับ PyTorch 3,193/3,200 ช่องบน `data/Test` — ส่วนที่ต่างมาจาก OpenCV คนละเวอร์ชัน (Pyodide มี 4.9) → **ทีมโมเดลควรวัดผลด้วย OpenCV 4.9 ด้วย**~~
+- ~~ทีมโมเดลแก้โค้ด/เทรนใหม่ → อัปเดต commit ใน `engine.js` และแปลง ONNX ใหม่~~
 
 ## เรียกใช้
 

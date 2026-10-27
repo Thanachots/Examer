@@ -1,0 +1,9 @@
+ep 0 loss 0.1161 val acc 0.9970 F1 empty/char/strike 0.9998/0.9973/0.9326 macro 0.9766 366s
+ep 1 loss 0.0150 val acc 0.9782 F1 empty/char/strike 0.9998/0.9807/0.0467 macro 0.6757 754s
+ep 2 loss 0.0090 val acc 0.9977 F1 empty/char/strike 0.9998/0.9980/0.9498 macro 0.9825 1167s
+ep 3 loss 0.0076 val acc 0.9995 F1 empty/char/strike 0.9998/0.9996/0.9932 macro 0.9975 1597s
+ep 4 loss 0.0062 val acc 0.9998 F1 empty/char/strike 0.9999/0.9999/0.9983 macro 0.9994 2002s
+ep 5 loss 0.0049 val acc 0.9999 F1 empty/char/strike 0.9999/0.9999/1.0000 macro 0.9999 2433s
+ep 6 loss 0.0050 val acc 0.9998 F1 empty/char/strike 0.9999/0.9999/0.9983 macro 0.9994 2849s
+ep 7 loss 0.0038 val acc 0.9997 F1 empty/char/strike 0.9997/0.9997/0.9983 macro 0.9992 3253s
+best (np.float64(0.9999473968275551), 5)

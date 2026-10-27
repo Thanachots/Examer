@@ -6,3 +6,15 @@ __pycache__/
 
 # ไฟล์เสริมส่วนตัวของแต่ละคน (ดู ai-agents/setup-memories.md)
 ai-agents/*/*/private/
+
+# ของที่ยังไม่ได้รวม / อาจไม่ใช้ — ผู้ใช้ตรวจก่อน (ดู _review/README.md)  [claude/gelatin · 2026-10-28]
+_review/
+
+# research/: ไฟล์ใหญ่ระหว่างพัฒนา (ข้อมูลช่อง .npz, checkpoint .pt, รายงาน Word) เก็บในเครื่อง/Drive ไม่ขึ้น git  [claude/gelatin · 2026-10-28]
+research/**/*.npz
+research/**/*.pt
+research/phase2b/cells_meta.json
+research/reports/
+research/dataset/**/*.jpg
+research/dataset/**/*.heic
+research/dataset/**/*.HEIC

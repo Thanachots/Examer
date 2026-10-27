@@ -15,6 +15,10 @@
   <div id="root"></div>
   <div id="toast" role="status" aria-live="polite"></div>
 
+  <!-- shared/: store.js (IndexedDB เดียวกับแอปครู) · pipeline.js (เกณฑ์ให้คะแนน) · school.js (รายชื่อ คะแนน ไฟล์ส่งข้อมูล) -->
+  <script src="../shared/store.js"></script>
+  <script src="../shared/pipeline.js"></script>
+  <script src="../shared/school.js"></script>
   <script src="../shared/core.js"></script>
   <script src="dashboard.js"></script>
   <script>App.start(Dashboard);</script>
