@@ -3,8 +3,8 @@
 //
 // ใช้ระบบเดิมของ Prame (อยู่ใน shared/):
 //   store.js    — Store (IndexedDB: ข้อสอบ + กระดาษคำตอบพร้อมรูป → รีเฟรช/ปิดแอปแล้วไม่หาย) · Settings (เกณฑ์ตรวจ + ระบบตรวจ)
-//   (ยังไม่ได้ต่อโมเดลจริง — engine ชุดเก่าถูกเอาออกแล้ว รอต่อโมเดลใหม่ของ Prame ที่ runModels) [claude/gelatin · 2026-10-28]
-//   pipeline.js — mockResult (ผลอ่านจำลอง: ใช้กับรูปตัวอย่าง และเมื่อตั้งค่าเป็นโหมดจำลอง)
+//   pipeline.js — Pipeline.run (ระบบตรวจ: โมเดลจริงใน engine/ ของ Prame ผ่าน Engine · ดู runModels) [claude/gelatin · 2026-10-28]
+//                 mockResult (ผลอ่านจำลอง: ใช้กับรูปตัวอย่าง และเมื่อตั้งค่าเป็นโหมดจำลอง)
 //                 Grade (ให้คะแนนตามเกณฑ์ตรวจ + ข้อที่ระบบไม่แน่ใจ)
 
 const Mobile = (() => {
@@ -63,11 +63,12 @@ const Mobile = (() => {
   const kindLabel = (k) => KINDS.find(([v]) => v === k)?.[1] || "";
   // ข้อสอบจากต้นแบบรอบก่อน ({ key: [...] }) → รูปแบบใหม่ ({ n, sets, keys: {1,2,3}, points })
   function normExam(e) {
-    if (e.keys) { if (e.sets > 3) { e.sets = 3; delete e.keys[4]; } return e; } // ข้อสอบเก่าที่มี 4 ชุด → เหลือ 3 [claude/gelatin · 2026-10-28]
+    if (e.keys) { if (e.sets > 3) { e.sets = 3; delete e.keys[4]; } return examTo20(e); } // ข้อสอบเก่าที่มี 4 ชุด → เหลือ 3 · ข้อสอบเก่า n ข้อ → 20 ข้อ [claude/gelatin · 2026-10-28]
     const key = e.key || [];
-    return { ...e, n: key.length, sets: 1, keys: { 1: key, 2: [], 3: [] }, points: key.map(() => 1), scaleTo: null, kind: "quiz", rooms: [] };
+    return examTo20({ ...e, n: key.length, sets: 1, keys: { 1: key, 2: [], 3: [] }, points: key.map(() => 1), scaleTo: null, kind: "quiz", rooms: [] });
   }
-  const examMax = (e) => e.points.reduce((a, p) => a + p, 0);
+  const examMax = examMaxPts; // คะแนนเต็ม = รวมคะแนนเฉพาะข้อที่มีเฉลย
+  const qCount = (e) => examQs(e).length; // จำนวนข้อที่มีเฉลย
 
   // ---------- คะแนน (เกณฑ์ตรวจของ Prame: Grade ใน pipeline.js) ----------
   const asExam = (exam) => ({ keys: Object.fromEntries([1, 2, 3].map((s) => [s, s <= exam.sets ? exam.keys[s] || [] : []])) });
@@ -82,7 +83,7 @@ const Mobile = (() => {
   const isCentral = (e) => !!e.central;
   // บันทึกลงเครื่องไม่ได้ (พื้นที่เต็ม) → บอกครูว่าต้องทำอะไร
   const storageError = (err, notSaved = 0) => err?.name === "QuotaExceededError" || /quota/i.test(err?.message || "")
-    ? `พื้นที่ในเครื่องเต็ม${notSaved ? ` — ยังไม่ได้เก็บ ${notSaved} รูป` : ""} · ลบรูปของการสอบที่ส่งคะแนนแล้ว (หน้าข้อสอบ › ลบรูปกระดาษ) แล้วลองใหม่`
+    ? `พื้นที่ในเครื่องเต็ม${notSaved ? `\u2003ยังไม่ได้เก็บ ${notSaved} รูป` : ""}\u2003ลบรูปของการสอบที่ส่งคะแนนแล้ว (หน้าข้อสอบ › ลบรูปกระดาษ) แล้วลองใหม่`
     : `บันทึกไม่สำเร็จ: ${err?.message || err}`;
 
   // ---------- โครงหน้า ----------
@@ -127,24 +128,22 @@ const Mobile = (() => {
   const FIELDS = ["name", "subject", "subjectCode", "kind", "date", "rooms", "n", "sets", "keys", "points", "scaleTo"];
   const ALL_SETS = [1, 2, 3]; // ไม่เกิน 3 ชุด [claude/gelatin · 2026-10-28]
   const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
-  const blankWork = () => ({ name: "", subject: "", subjectCode: "", kind: "quiz", date: today(), rooms: [], n: 10, sets: 1, keys: { 1: [], 2: [], 3: [] }, points: [], scaleTo: null });
+  // ข้อสอบมี 20 ข้อเสมอ (เท่ากระดาษคำตอบ) · ข้อที่ไม่ใส่เฉลย = นักเรียนต้องเว้นว่าง ไม่นับคะแนน [claude/gelatin · 2026-10-28]
+  const blankWork = () => examTo20({ name: "", subject: "", subjectCode: "", kind: "quiz", date: today(), rooms: [], n: MAX_Q, sets: 1, keys: { 1: [], 2: [], 3: [] }, points: [], scaleTo: null });
   const isReady = (e) => e.status !== "draft";
-  const COUNTS = [5, 10, 15, 20];
   const PARTS = [["info", "การสอบ"], ["keys", "เฉลย"], ["score", "คะแนน"]];
-  const editState = {}; // { [id]: { set: ชุดที่กำลังใส่เฉลย, custom: เลือกจำนวนข้อเอง } }
+  const editState = {}; // { [id]: { set: ชุดที่กำลังใส่เฉลย } }
 
   const workOf = (e) => {
     const w = structuredClone(e.work || Object.fromEntries(FIELDS.map((k) => [k, e[k]])));
-    for (const s of ALL_SETS) w.keys[s] ||= [];
     w.rooms ||= [];
-    for (let i = 0; i < w.n; i++) w.points[i] ??= 1;
-    return w;
+    return examTo20(w);
   };
-  const keysDone = (w, s) => w.keys[s].slice(0, w.n).filter(Boolean).length;
+  const keysDone = (w, s) => w.keys[s].filter(Boolean).length; // ข้อที่ใส่เฉลยแล้วในชุดนั้น
   const status = (w) => ({
     info: !!w.name.trim(),
-    keys: ALL_SETS.slice(0, w.sets).every((s) => keysDone(w, s) === w.n),
-    score: w.points.slice(0, w.n).reduce((a, p) => a + p, 0) > 0,
+    keys: ALL_SETS.slice(0, w.sets).every((s) => keysDone(w, s) > 0), // ทุกชุดต้องมีเฉลยอย่างน้อย 1 ข้อ
+    score: examMaxPts(w) > 0,
   });
   const sameAsSaved = (e, w) => isReady(e) && FIELDS.every((k) => JSON.stringify(e[k]) === JSON.stringify(w[k]));
   const isEmptyDraft = (e, w) => !isReady(e) && !w.name.trim() && !w.subject && !ALL_SETS.some((s) => keysDone(w, s));
@@ -153,12 +152,13 @@ const Mobile = (() => {
   // ใช้ฉบับที่แก้ (ต้องครบทุกหัวข้อ) — ไม่ครบ → บอกว่าขาดอะไรแล้วพาไปหน้านั้น
   async function commit(e, w) {
     const st = status(w);
-    const miss = !st.info ? ["info", "ใส่ชื่อการสอบก่อน"] : !st.keys ? ["keys", "ใส่เฉลยให้ครบทุกข้อก่อน"] : !st.score ? ["score", "คะแนนรวมต้องมากกว่า 0"] : null;
+    const emptySet = ALL_SETS.slice(0, w.sets).find((s) => !keysDone(w, s));
+    const miss = !st.info ? ["info", "ใส่ชื่อการสอบก่อน"] : !st.keys ? ["keys", w.sets > 1 ? `ชุดที่ ${emptySet} ยังไม่มีเฉลย ใส่เฉลยหรือลบชุดนี้ก่อน` : "ใส่เฉลยอย่างน้อย 1 ข้อก่อน"] : !st.score ? ["score", "คะแนนรวมต้องมากกว่า 0"] : null;
     if (miss) { toast(miss[1]); if (!location.hash.endsWith("/" + miss[0])) location.hash = `#/edit/${e.id}/${miss[0]}`; return; }
     const checked = isReady(e) ? Data.saved(e.id).length : 0;
     Object.assign(e, structuredClone(w), { status: "ready", updatedAt: Date.now() });
-    e.points = e.points.slice(0, e.n);
-    for (const s of ALL_SETS) e.keys[s] = s <= e.sets ? e.keys[s].slice(0, e.n) : [];
+    examTo20(e);
+    for (const s of ALL_SETS) if (s > e.sets) e.keys[s] = Array(MAX_Q).fill("");
     delete e.work; delete e.key;
     await Data.saveExam(e);
     toast(checked ? `บันทึกแล้ว คิดคะแนน ${checked} แผ่นใหม่ให้แล้ว` : "บันทึกข้อสอบแล้ว");
@@ -169,7 +169,7 @@ const Mobile = (() => {
   function partOpts(e, part) {
     const i = PARTS.findIndex(([k]) => k === part);
     if (isReady(e)) return { title: PARTS[i][1], back: `#/edit/${e.id}`, tabs: false };
-    return { title: PARTS[i][1], back: i ? `#/edit/${e.id}/${PARTS[i - 1][0]}` : "#/exams", tabs: false, extra: `<span class="wiz" aria-label="ขั้นที่ ${i + 1} จาก 3">${PARTS.map((_, j) => `<i class="${j <= i ? "on" : ""}"></i>`).join("")}</span>` };
+    return { title: PARTS[i][1], back: i ? `#/edit/${e.id}/${PARTS[i - 1][0]}` : "#/exams", tabs: false, extra: `<span class="wiz-t">ขั้นที่ ${i + 1} จาก 3</span>` };
   }
   function wizardBar(e, w, part) {
     if (isReady(e)) return "";
@@ -192,7 +192,7 @@ const Mobile = (() => {
         const tag = isCentral(e) ? `<span class="tag central">ข้อสอบกลาง</span>` : !isReady(e) ? `<span class="tag draft">ร่าง</span>` : e.work && !sameAsSaved(e, w) ? `<span class="tag edit">แก้ไขค้างไว้</span>` : "";
         return `<li><a href="#/edit/${e.id}${isReady(e) ? "" : "/info"}">
           <span class="ex-t"><b>${esc(w.name || "ข้อสอบไม่มีชื่อ")} ${tag}</b>
-            <small>${esc([w.subject, kindLabel(w.kind), `${w.n} ข้อ`, w.sets > 1 && `${w.sets} ชุด`].filter(Boolean).join(" · "))}</small></span>
+            <small>${esc([w.subject, kindLabel(w.kind), `${qCount(w)} ข้อ`, w.sets > 1 && `${w.sets} ชุด`].filter(Boolean).join("\u2003"))}</small></span>
           ${ico("next")}
         </a></li>`;
       }).join("")}</ul>` : `
@@ -216,8 +216,8 @@ const Mobile = (() => {
     if (isCentral(e)) return centralHub(e);
     if (!isReady(e)) { location.replace(`#/edit/${id}/info`); return; }
     const w = workOf(e), st = status(w), changed = !!e.work && !sameAsSaved(e, w);
-    const total = w.points.slice(0, w.n).reduce((a, p) => a + p, 0);
-    const keyLine = w.sets > 1 ? ALL_SETS.slice(0, w.sets).map((s) => `ชุดที่ ${s} ${keysDone(w, s)}/${w.n}`).join(" · ") : `ใส่แล้ว ${keysDone(w, 1)}/${w.n} ข้อ`;
+    const total = examMaxPts(w);
+    const keyLine = w.sets > 1 ? ALL_SETS.slice(0, w.sets).map((s) => `ชุดที่ ${s} มี ${keysDone(w, s)} ข้อ`).join("\u2003") : `${keysDone(w, 1)} ข้อ`;
     const row = (part, title, sub, ok) => `
       <li><a href="#/edit/${id}/${part}">
         <span class="hub-ok ${ok ? "ok" : ""}" aria-label="${ok ? "ครบแล้ว" : "ยังไม่ครบ"}">${ok ? "✓" : ""}</span>
@@ -227,11 +227,11 @@ const Mobile = (() => {
     view(`
       <div class="hub">
         <ul class="hub-list">
-          ${row("info", "การสอบ", [w.name || "ยังไม่มีชื่อ", w.subject, kindLabel(w.kind), w.date && thaiDate(w.date)].filter(Boolean).join(" · "), st.info)}
-          ${row("keys", "เฉลย", `${w.n} ข้อ · ${keyLine}`, st.keys)}
-          ${row("score", "คะแนน", `รวม ${num(total)} คะแนน${w.scaleTo ? ` · คิดเป็น ${num(w.scaleTo)}` : ""}`, st.score)}
+          ${row("info", "การสอบ", [w.name || "ยังไม่มีชื่อ", w.subject, kindLabel(w.kind), w.date && thaiDate(w.date)].filter(Boolean).join("\u2003"), st.info)}
+          ${row("keys", "เฉลย", keyLine, st.keys)}
+          ${row("score", "คะแนน", `รวม ${num(total)} คะแนน${w.scaleTo ? `\u2003คิดเป็น ${num(w.scaleTo)}` : ""}`, st.score)}
         </ul>
-        ${checked && changed ? `<p class="review-note">ตรวจไปแล้ว ${checked} แผ่น — บันทึกแล้วระบบจะคิดคะแนนทุกแผ่นใหม่</p>` : ""}
+        ${checked && changed ? `<p class="review-note">ตรวจไปแล้ว ${checked} แผ่น\u2003บันทึกแล้วระบบจะคิดคะแนนทุกแผ่นใหม่</p>` : ""}
         <div class="hub-actions">
           <button class="btn primary block" id="save" ${changed ? "" : "disabled"}>บันทึกการแก้ไข</button>
           <p class="small muted center">${changed ? "มีการแก้ไขที่ยังไม่บันทึก" : "ยังไม่มีการแก้ไข"}</p>
@@ -248,15 +248,15 @@ const Mobile = (() => {
 
   // ข้อสอบกลาง (จากฝ่ายวิชาการ): ดูได้อย่างเดียว · เฉลยแก้ที่ Dashboard แล้วส่งไฟล์ใหม่
   function centralHub(e) {
-    const keyLine = ALL_SETS.slice(0, e.sets).map((s) => `ชุดที่ ${s}: ${e.keys[s].length} ข้อ`).join(" · ");
-    const total = e.points.reduce((a, p) => a + p, 0);
+    const keyLine = e.sets > 1 ? ALL_SETS.slice(0, e.sets).map((s) => `ชุดที่ ${s} มี ${e.keys[s].filter(Boolean).length} ข้อ`).join("\u2003") : `${qCount(e)} ข้อ`;
+    const total = examMaxPts(e);
     view(`
       <div class="hub">
-        <p class="review-note central-note">ข้อสอบกลางจากฝ่ายวิชาการ — ครูทุกห้องใช้เฉลยเดียวกัน แก้ในแอปไม่ได้ ถ้าเฉลยผิดให้แจ้งฝ่ายวิชาการ</p>
+        <p class="review-note central-note">ข้อสอบกลางจากฝ่ายวิชาการ\u2003ครูทุกห้องใช้เฉลยเดียวกัน แก้ในแอปไม่ได้ ถ้าเฉลยผิดให้แจ้งฝ่ายวิชาการ</p>
         <ul class="hub-list ro">
-          <li><span class="ex-t"><b>การสอบ</b><small>${esc([e.name, [e.subjectCode, e.subject].filter(Boolean).join(" "), kindLabel(e.kind), e.date && thaiDate(e.date), e.rooms?.join(", ")].filter(Boolean).join(" · "))}</small></span></li>
-          <li><span class="ex-t"><b>เฉลย</b><small>${esc(`${e.n} ข้อ · ${keyLine}`)}</small></span></li>
-          <li><span class="ex-t"><b>คะแนน</b><small>${esc(`รวม ${num(total)} คะแนน${e.scaleTo ? ` · คิดเป็น ${num(e.scaleTo)}` : ""}`)}</small></span></li>
+          <li><span class="ex-t"><b>การสอบ</b><small>${esc([e.name, [e.subjectCode, e.subject].filter(Boolean).join(" "), kindLabel(e.kind), e.date && thaiDate(e.date), e.rooms?.join(", ")].filter(Boolean).join("\u2003"))}</small></span></li>
+          <li><span class="ex-t"><b>เฉลย</b><small>${esc(keyLine)}</small></span></li>
+          <li><span class="ex-t"><b>คะแนน</b><small>${esc(`รวม ${num(total)} คะแนน${e.scaleTo ? `\u2003คิดเป็น ${num(e.scaleTo)}` : ""}`)}</small></span></li>
         </ul>
         <a class="btn primary block" href="#/exam/${e.id}">${ico("camera")}ไปตรวจข้อสอบนี้</a>
       </div>`, { title: "ข้อสอบกลาง", back: "#/exams", tabs: false });
@@ -305,77 +305,78 @@ const Mobile = (() => {
     return dropIfEmpty(e, w);
   }
 
-  // ขั้น / หัวข้อ 2: เฉลย — จำนวนข้อ (5/10/15/20/ระบุ) · ชุด 1–4 (ปุ่มวงกลมบอกสถานะ) · ทุกข้อในหน้าเดียว + คะแนนต่อข้อ (−/+)
+  // ขั้น / หัวข้อ 2: เฉลย — 20 ข้อเสมอ (เท่ากระดาษคำตอบ) · ข้อที่ไม่ใส่ = นักเรียนต้องเว้นว่าง ไม่นับคะแนน · ชุดข้อสอบ 1 ถึง 3 [claude/gelatin · 2026-10-28]
   async function editKeys(id) {
     const e = await Data.exam(id);
     if (!e) { location.hash = "#/exams"; return; }
     if (isCentral(e)) { location.replace(`#/edit/${id}`); return; }
     const w = workOf(e);
-    const st = (editState[id] ||= { set: 1, custom: !COUNTS.includes(w.n) });
+    const st = (editState[id] ||= { set: 1 });
     st.set = Math.min(st.set, w.sets);
     view(`<div class="keys-page">
-        <div class="field"><span class="field-l">จำนวนข้อ</span><div class="count-row" id="counts"></div></div>
-        <div class="field"><span class="field-l">ชุดข้อสอบ</span><div class="set-row" id="sets"></div></div>
+        <p class="hint">กระดาษคำตอบมี ${MAX_Q} ข้อ ใส่เฉลยเฉพาะข้อที่ใช้<br />ข้อที่ไม่ใส่เฉลย นักเรียนต้องเว้นว่างไว้ ข้อนั้นไม่นับคะแนน</p>
+        <div class="field"><span class="field-l">ชุดข้อสอบ <small class="muted">ถ้าสลับข้อเป็นหลายชุด เพิ่มชุดแล้วใส่เฉลยของแต่ละชุด</small></span><div class="set-tabs" id="sets"></div></div>
         <div id="qs"></div>
       </div>
       ${wizardBar(e, w, "keys")}`, partOpts(e, "keys"));
 
     const save = () => saveWork(e, w);
-    function drawCounts() {
-      $("#counts").innerHTML = `${COUNTS.map((c) => `<button type="button" class="cnt ${!st.custom && w.n === c ? "on" : ""}" data-n="${c}" aria-pressed="${!st.custom && w.n === c}">${c}</button>`).join("")}
-        <span class="cnt-custom ${st.custom ? "on" : ""}" role="group" aria-label="ระบุจำนวนข้อเอง">
-          <button type="button" class="icon-btn sm" data-cd="-1" aria-label="ลดจำนวนข้อ">−</button>
-          ${st.custom ? `<output>${w.n}</output>` : `<button type="button" class="cnt-l" data-cd="0">ระบุ</button>`}
-          <button type="button" class="icon-btn sm" data-cd="1" aria-label="เพิ่มจำนวนข้อ">${ico("plus")}</button>
-        </span>`;
-      const setN = (n) => { w.n = Math.min(MAX_Q, Math.max(1, n)); for (let i = 0; i < w.n; i++) w.points[i] ??= 1; save(); drawCounts(); drawSets(); drawQs(); };
-      $$("[data-n]").forEach((b) => (b.onclick = () => { st.custom = false; setN(Number(b.dataset.n)); }));
-      $$("[data-cd]").forEach((b) => (b.onclick = () => { const d = st.custom ? Number(b.dataset.cd) : 0; st.custom = true; setN(w.n + d); }));
-    }
-    // ปุ่มชุด: วงกลมแบบช่อง "ชุด" บนกระดาษคำตอบ · เส้นรอบวง = ใส่เฉลยไปแล้วกี่ % · ทึบ+ขอบทอง = ชุดที่กำลังใส่ · เส้นประ+ = ยังไม่ได้เพิ่ม
     function drawSets() {
-      $("#sets").innerHTML = ALL_SETS.map((s) => {
-        const on = s <= w.sets, cur = s === st.set, pct = on ? (keysDone(w, s) / w.n) * 100 : 0;
-        const label = !on ? `เพิ่มชุดที่ ${s}` : `ชุดที่ ${s} ใส่เฉลยแล้ว ${keysDone(w, s)} จาก ${w.n} ข้อ${cur ? " (กำลังใส่)" : ""}`;
-        return `<button type="button" class="setc ${on ? "on" : "off"} ${cur ? "cur" : ""}" data-s="${s}" style="--p:${pct}" aria-label="${label}" title="${label}"><span>${s}</span></button>`;
-      }).join("") + (w.sets > 1 ? `<button type="button" class="icon-btn sm set-del" id="set-del" aria-label="ลบชุดที่ ${st.set}" title="ลบชุดที่ ${st.set}">${ico("trash")}</button>` : "");
-      $$("[data-s]").forEach((b) => (b.onclick = () => {
-        const s = Number(b.dataset.s);
-        if (s > w.sets) { w.sets = s; save(); } // เพิ่มชุด (ถึงชุดที่แตะ)
-        st.set = s;
-        drawSets(); drawQs();
-      }));
+      $("#sets").innerHTML = `${w.sets < 2 ? "" : `<div class="seg" role="tablist">${ALL_SETS.slice(0, w.sets).map((s) =>
+        `<button type="button" data-s="${s}" class="${s === st.set ? "on" : ""}" role="tab" aria-selected="${s === st.set}">ชุดที่ ${s} <small>${keysDone(w, s)} ข้อ</small></button>`).join("")}</div>`}
+        <div class="set-acts">
+          ${w.sets < ALL_SETS.length ? `<button type="button" class="link" id="set-add">${ico("plus")}เพิ่มชุดที่ ${w.sets + 1}</button>` : ""}
+          ${w.sets > 1 ? `<button type="button" class="link danger-link" id="set-del">${ico("trash")}ลบชุดที่ ${st.set}</button>` : ""}
+        </div>`;
+      $$("[data-s]").forEach((b) => (b.onclick = () => { st.set = Number(b.dataset.s); drawSets(); drawQs(); }));
+      const add = $("#set-add");
+      if (add) add.onclick = () => { w.sets += 1; st.set = w.sets; save(); drawSets(); drawQs(); $(".qa-in")?.focus(); };
       const del = $("#set-del");
       if (del) del.onclick = async () => {
         const s = st.set, filled = keysDone(w, s);
         // ชุดว่าง → ลบเลย · มีเฉลยแล้ว → ถามก่อน
-        if (filled && !(await confirmSheet({ title: `ลบชุดที่ ${s}?`, body: `เฉลยที่ใส่ไว้ ${filled} ข้อของชุดนี้จะหายไป${s < w.sets ? ` · ชุดที่ ${s + 1}${s + 1 < w.sets ? "–" + w.sets : ""} จะเลื่อนขึ้นมาแทน` : ""}`, ok: "ลบชุดนี้" }))) return;
+        if (filled && !(await confirmSheet({ title: `ลบชุดที่ ${s}?`, body: `เฉลยที่ใส่ไว้ ${filled} ข้อของชุดนี้จะหายไป${s < w.sets ? ` ชุดถัดไปจะเลื่อนขึ้นมาแทน` : ""}`, ok: "ลบชุดนี้" }))) return;
         for (let k = s; k < w.sets; k++) w.keys[k] = w.keys[k + 1];
-        w.keys[w.sets] = [];
+        w.keys[w.sets] = Array(MAX_Q).fill("");
         w.sets -= 1;
         st.set = Math.min(s, w.sets);
         save(); drawSets(); drawQs();
         toast(`ลบชุดที่ ${s} แล้ว`);
       };
     }
+    const sumLine = () => `ใส่เฉลยแล้ว <b>${keysDone(w, st.set)}</b> ข้อ คะแนนรวม <b>${num(examMaxPts(w))}</b>`;
     function drawQs() {
       const key = w.keys[st.set];
+      const ptsHtml = (i) => key[i]
+        ? `<span class="pts" role="group" aria-label="คะแนนข้อ ${i + 1}"><button type="button" data-pd="-1" data-q="${i}" aria-label="ลดคะแนนข้อ ${i + 1}">−</button><output>${num(w.points[i])}</output><button type="button" data-pd="1" data-q="${i}" aria-label="เพิ่มคะแนนข้อ ${i + 1}">+</button></span>`
+        : `<span class="pts-off">ไม่นับ</span>`;
       $("#qs").innerHTML = `
-        <ol class="qa-list">${Array.from({ length: w.n }, (_, i) => `
-          <li>
+        <div class="qa-head"><span></span><span>เฉลย${w.sets > 1 ? ` ชุดที่ ${st.set}` : ""}</span><span>คะแนน</span></div>
+        <ol class="qa-list">${Array.from({ length: MAX_Q }, (_, i) => `
+          <li class="${key[i] ? "" : "blank"}">
             <span class="q">${i + 1}</span>
-            <input class="qa-in" data-q="${i}" value="${esc(key[i] || "")}" maxlength="${MAX_BOX}" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="เฉลยข้อ ${i + 1}" aria-label="เฉลย${w.sets > 1 ? `ชุดที่ ${st.set} ` : ""}ข้อ ${i + 1}" />
-            <span class="pts" role="group" aria-label="คะแนนข้อ ${i + 1}">
-              <button type="button" data-pd="-1" data-q="${i}" aria-label="ลดคะแนนข้อ ${i + 1}">−</button><output>${num(w.points[i])}</output><button type="button" data-pd="1" data-q="${i}" aria-label="เพิ่มคะแนนข้อ ${i + 1}">+</button>
-            </span>
+            <input class="qa-in" data-q="${i}" value="${esc(key[i] || "")}" maxlength="${MAX_BOX}" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="เว้นว่าง" aria-label="เฉลย${w.sets > 1 ? `ชุดที่ ${st.set} ` : ""}ข้อ ${i + 1}" />
+            <span class="pts-cell" data-pc="${i}">${ptsHtml(i)}</span>
           </li>`).join("")}
         </ol>
-        <p class="small muted">ตัวอักษร A–Z ไม่เกิน ${MAX_BOX} ตัวต่อข้อ · คะแนนข้อละ 1 ถ้าไม่ปรับ</p>`;
+        <p class="small muted" id="qa-sum">${sumLine()}</p>
+        <p class="small muted">พิมพ์ตัวอักษร A ถึง Z ไม่เกิน ${MAX_BOX} ตัวต่อข้อ คะแนนข้อละ 1 ถ้าไม่ปรับ</p>`;
+      const bindPts = () => $$("[data-pd]").forEach((b) => (b.onclick = () => {
+        const i = Number(b.dataset.q);
+        w.points[i] = Math.min(10, Math.max(1, (w.points[i] || 1) + Number(b.dataset.pd)));
+        b.parentElement.querySelector("output").textContent = num(w.points[i]);
+        $("#qa-sum").innerHTML = sumLine();
+        save();
+      }));
       $$(".qa-in").forEach((inp) => {
         inp.oninput = () => {
           inp.value = inp.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, MAX_BOX);
-          w.keys[st.set][Number(inp.dataset.q)] = inp.value;
-          save(); drawSets();
+          const i = Number(inp.dataset.q), had = !!key[i];
+          key[i] = inp.value;
+          if (had !== !!inp.value) { $(`[data-pc="${i}"]`).innerHTML = ptsHtml(i); inp.closest("li").classList.toggle("blank", !inp.value); bindPts(); }
+          $("#qa-sum").innerHTML = sumLine();
+          $$(`[data-s="${st.set}"] small`).forEach((x) => (x.textContent = `${keysDone(w, st.set)} ข้อ`));
+          save();
         };
         inp.onkeydown = (ev) => { // Enter → ข้อถัดไป
           if (ev.key !== "Enter") return;
@@ -384,14 +385,9 @@ const Mobile = (() => {
           if (next) next.focus(); else inp.blur();
         };
       });
-      $$("[data-pd]").forEach((b) => (b.onclick = () => {
-        const i = Number(b.dataset.q);
-        w.points[i] = Math.min(10, Math.max(1, (w.points[i] || 1) + Number(b.dataset.pd)));
-        b.parentElement.querySelector("output").textContent = num(w.points[i]);
-        save();
-      }));
+      bindPts();
     }
-    drawCounts(); drawSets(); drawQs();
+    drawSets(); drawQs();
     bindWizard(e, w);
   }
 
@@ -401,10 +397,10 @@ const Mobile = (() => {
     if (!e) { location.hash = "#/exams"; return; }
     if (isCentral(e)) { location.replace(`#/edit/${id}`); return; }
     const w = workOf(e);
-    const total = () => w.points.slice(0, w.n).reduce((a, p) => a + p, 0);
+    const total = () => examMaxPts(w);
     view(`<div class="m-form fit">
         <section class="score-box">
-          <span>คะแนนรวม</span><b>${num(total())}</b><small class="muted">${w.n} ข้อ · ปรับคะแนนรายข้อได้ที่หน้าเฉลย</small>
+          <span>คะแนนรวม</span><b>${num(total())}</b><small class="muted">จากเฉลย ${qCount(w)} ข้อ ปรับคะแนนรายข้อได้ที่หน้าเฉลย</small>
         </section>
         <div class="field"><span class="field-l">คิดเป็นคะแนนเต็ม <small class="muted">(ไม่บังคับ)</small></span>
           <div class="scale-row">
@@ -412,7 +408,7 @@ const Mobile = (() => {
             <input id="scale" type="number" inputmode="decimal" min="1" step="1" value="${w.scaleTo ?? ""}" placeholder="${num(total())}" aria-label="คิดเป็นคะแนนเต็ม" />
             <button type="button" class="icon-btn" data-sd="1" aria-label="เพิ่ม">${ico("plus")}</button>
           </div>
-          <p class="small muted">ใช้ตอนบันทึกลงคะแนนเก็บ เช่น สอบ 20 ข้อ คิดเป็น 10 คะแนน · เว้นว่าง = ใช้คะแนนรวม</p>
+          <p class="small muted">ใช้ตอนบันทึกลงคะแนนเก็บ เช่น สอบ 20 ข้อ คิดเป็น 10 คะแนน\u2003เว้นว่าง = ใช้คะแนนรวม</p>
         </div>
       </div>
       ${wizardBar(e, w, "score")}`, partOpts(e, "score"));
@@ -449,8 +445,8 @@ const Mobile = (() => {
       <ul class="exam-list">${xs.map((e) => {
         const done = Data.saved(e.id).length, left = Data.pending(e.id).length;
         return `<li><a href="#/exam/${e.id}">
-          <span class="ex-t"><b>${esc(e.name)}</b><small>${esc([e.subject, kindLabel(e.kind), `${e.n} ข้อ`].filter(Boolean).join(" · "))}</small>
-            <small>ตรวจแล้ว ${done} แผ่น${left ? ` · <em>ค้าง ${left} แผ่น</em>` : ""}</small></span>
+          <span class="ex-t"><b>${esc(e.name)}</b><small>${esc([e.subject, kindLabel(e.kind), `${qCount(e)} ข้อ`].filter(Boolean).join("\u2003"))}</small>
+            <small>ตรวจแล้ว ${done} แผ่น${left ? `\u2003<em>ค้าง ${left} แผ่น</em>` : ""}</small></span>
           ${ico("next")}
         </a></li>`;
       }).join("")}
@@ -483,17 +479,17 @@ const Mobile = (() => {
     if (roster.length) gs.sort((a, b) => (!!a.st - !!b.st) || String(a.st?.room).localeCompare(String(b.st?.room), "th") || (a.st?.no ?? 0) - (b.st?.no ?? 0));
     const who = ({ s, st }, i) => st ? `<b>${st.no ? `${st.no}. ` : ""}${esc(st.name || st.sid)}</b>` : studentOf(s) ? `<b>เลขประจำตัว ${esc(studentOf(s))}</b>` : `<b>แผ่นที่ ${i + 1}</b>`;
     const sub = (x) => { const { s, g, st } = x; return [roster.length && !st ? `<em class="bad">${studentOf(s) ? "ไม่พบในรายชื่อ" : "อ่านเลขประจำตัวไม่ได้"}</em>` : st && exam.rooms.length > 1 ? esc(st.room) : "",
-      dupOf(st) > 1 ? `<em class="bad">${latest.get(kOf(st)) === x ? `ซ้ำ ${dupOf(st)} แผ่น — ใช้แผ่นนี้` : "ซ้ำ — ไม่นับแผ่นนี้"}</em>` : "",
-      g.review ? `<em>ระบบไม่แน่ใจ ${g.review} ข้อ</em>` : !roster.length || st ? "ตรวจแล้ว" : ""].filter(Boolean).join(" · "); };
+      dupOf(st) > 1 ? `<em class="bad">${latest.get(kOf(st)) === x ? `ซ้ำ ${dupOf(st)} แผ่น\u2003ใช้แผ่นนี้` : "ซ้ำ\u2003ไม่นับแผ่นนี้"}</em>` : "",
+      g.review ? `<em>ระบบไม่แน่ใจ ${g.review} ข้อ</em>` : !roster.length || st ? "ตรวจแล้ว" : ""].filter(Boolean).join("\u2003"); };
     const meta = [exam.subjectCode && exam.subject ? `${exam.subjectCode} ${exam.subject}` : exam.subject || exam.subjectCode, kindLabel(exam.kind),
       exam.date && thaiDate(exam.date), exam.rooms?.length && exam.rooms.join(", "), exam.sets > 1 && `${exam.sets} ชุด`].filter(Boolean);
     view(`
-      ${meta.length ? `<p class="ex-meta">${esc(meta.join(" · "))}</p>` : ""}
+      ${meta.length ? `<p class="ex-meta">${esc(meta.join("\u2003"))}</p>` : ""}
       <section class="ex-sum">
         <div><b>${roster.length ? `${sum.counts.scored - sum.counts.unknown}<small>/${roster.length}</small>` : saved.length}</b><span>${roster.length ? "ตรวจแล้ว (คน)" : "แผ่นที่ตรวจแล้ว"}</span></div>
-        <div><b>${gs.length ? num(mean) : "–"}</b><span>คะแนนเฉลี่ย (เต็ม ${num(max)})</span></div>
+        <div><b>${gs.length ? num(mean) : "ยังไม่มี"}</b><span>คะแนนเฉลี่ย (เต็ม ${num(max)})</span></div>
       </section>
-      ${exam.scaleTo ? `<p class="small muted ex-scale">${exam.n} ข้อ ${num(max)} คะแนน คิดเป็นคะแนนเต็ม ${num(exam.scaleTo)}${gs.length ? ` · เฉลี่ย ${num((mean * exam.scaleTo) / max)}` : ""}</p>` : ""}
+      ${exam.scaleTo ? `<p class="small muted ex-scale">${qCount(exam)} ข้อ ${num(max)} คะแนน คิดเป็นคะแนนเต็ม ${num(exam.scaleTo)}${gs.length ? `\u2003เฉลี่ย ${num((mean * exam.scaleTo) / max)}` : ""}</p>` : ""}
       <a class="btn primary block" href="#/check/${id}/photo">${ico("camera")}${left ? `ตรวจต่อ (ค้าง ${left} แผ่น)` : "ตรวจข้อสอบ"}</a>
       <a class="btn ghost block" href="#/edit/${id}">${ico(isCentral(exam) ? "eye" : "pencil")}${isCentral(exam) ? "ดูข้อสอบกลาง" : "แก้ไขข้อสอบ"}</a>
       ${gs.length ? `
@@ -511,7 +507,7 @@ const Mobile = (() => {
         <button class="btn primary block" id="send">${ico("upload")}ส่งคะแนนให้ฝ่ายวิชาการ</button>
         <button class="btn ghost block" id="csv">${ico("download")}ไฟล์สำหรับ SGS / ปพ.5 (CSV)</button>
         ${saved.some((x) => x.image) ? `<button class="link danger-link" id="free">${ico("trash")}ลบรูปกระดาษของการสอบนี้ (เก็บคะแนนไว้)</button>` : ""}
-        <p class="small muted pad">${roster.length ? "เรียงตามห้องและเลขที่ นักเรียนที่ไม่มีกระดาษมีในไฟล์ด้วย (คะแนนว่าง)" : "ยังไม่มีรายชื่อนักเรียน — นำเข้าไฟล์จากฝ่ายวิชาการที่ ตั้งค่า จะได้ชื่อและเลขที่ในไฟล์"}</p>` : `<p class="muted center ex-none">ยังไม่มีกระดาษที่ตรวจแล้ว</p>`}
+        <p class="small muted pad">${roster.length ? "เรียงตามห้องและเลขที่ นักเรียนที่ไม่มีกระดาษมีในไฟล์ด้วย (คะแนนว่าง)" : "ยังไม่มีรายชื่อนักเรียน\u2003นำเข้าไฟล์จากฝ่ายวิชาการที่ ตั้งค่า จะได้ชื่อและเลขที่ในไฟล์"}</p>` : `<p class="muted center ex-none">ยังไม่มีกระดาษที่ตรวจแล้ว</p>`}
       <button class="link danger-link" id="del">${ico("trash")}ลบข้อสอบนี้</button>`, { title: exam.name, back: "#/check" });
 
     // ประหยัดพื้นที่: ส่งคะแนนแล้วลบรูปได้ คะแนนและผลอ่านยังอยู่ (แก้ผลได้ แต่ไม่เห็นรูป/ลายมือ)
@@ -533,7 +529,7 @@ const Mobile = (() => {
       // มือถือ: เปิดเมนูแชร์ (ส่งทาง LINE ได้เลย) · ทำไม่ได้ → ดาวน์โหลดไฟล์
       try { if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: `คะแนน ${exam.name}` }); return; } } catch (err) { if (err.name === "AbortError") return; }
       download(file, file.name);
-      toast("ได้ไฟล์คะแนนแล้ว — ส่งไฟล์นี้ให้ฝ่ายวิชาการ");
+      toast("ได้ไฟล์คะแนนแล้ว\u2003ส่งไฟล์นี้ให้ฝ่ายวิชาการ");
     };
     armButton($("#del"), "แตะอีกครั้งเพื่อลบข้อสอบและคะแนนทั้งหมด", async () => { await Data.delExam(id); toast("ลบข้อสอบแล้ว"); location.hash = "#/check"; });
   }
@@ -582,6 +578,7 @@ const Mobile = (() => {
 
   // 1 ถ่ายภาพ — ถ่ายทีละแผ่นหรือเลือกจากคลังหลายรูปพร้อมกัน (เก็บลงเครื่องทันที)
   function photoStep(exam, stepper, opts) {
+    if (Pipeline.isLive()) Engine.load().catch(() => {}); // โหลดโมเดลไว้ระหว่างที่ครูถ่ายรูป (ครั้งแรก ~50 MB) [claude/gelatin · 2026-10-28]
     const items = Data.pending(exam.id), n = items.length;
     view(`${stepper}
       <div class="step-body">
@@ -591,12 +588,18 @@ const Mobile = (() => {
             <li><img src="${Data.thumb(x)}" alt="แผ่นที่ ${i + 1}" loading="lazy" decoding="async" /><span class="strip-n">${i + 1}</span>
               <button class="thumb-x" data-rm="${x.id}" aria-label="เอาแผ่นที่ ${i + 1} ออก">×</button></li>`).join("")}
           </ul>` : `
-          <div class="shot"><div class="shot-guide">${ico("camera")}<p>วางกระดาษบนพื้นเรียบ ถ่ายให้เห็นครบทั้งแผ่น ถ่ายต่อกันได้หลายแผ่น</p></div></div>`}
+          <div class="shot"><div class="shot-guide">${ico("camera")}
+            <ul class="tips">
+              <li>วางกระดาษบนพื้นเรียบ ถ่ายตรงจากด้านบน</li>
+              <li>ให้เห็นสี่เหลี่ยมดำที่มุมกระดาษครบทั้ง 3 มุม</li>
+              <li>ที่ที่แสงพอ ไม่มีเงาทับกระดาษ</li>
+              <li>ถ่ายต่อกันได้หลายแผ่น แล้วค่อยตรวจทีเดียว</li>
+            </ul></div></div>`}
         <p class="busy" id="busy" hidden></p>
         <div class="step-actions">
           <div class="pick-row">
             <label class="btn ${n ? "ghost" : "primary"}">${ico("camera")}${n ? "ถ่ายเพิ่ม" : "ถ่ายรูป"}<input type="file" accept="${Photos.ACCEPT}" capture="environment" hidden data-pick /></label>
-            <label class="btn ghost">${ico("image")}${n ? "เลือกเพิ่ม" : "เลือกจากคลังภาพ"}<input type="file" accept="${Photos.ACCEPT}" multiple hidden data-pick /></label>
+            <label class="btn ghost">${ico("image")}${n ? "เลือกเพิ่ม" : "เลือกรูป"}<input type="file" accept="${Photos.ACCEPT}" multiple hidden data-pick /></label>
           </div>
           ${n ? `<a class="btn primary block" href="#/check/${exam.id}/crop">ครอบภาพ ${n} แผ่น${ico("next")}</a>`
             : `<button class="link" id="sample">ยังไม่มีกระดาษ? ลองด้วยรูปตัวอย่าง 3 แผ่น</button>`}
@@ -632,7 +635,7 @@ const Mobile = (() => {
       const heic = files.some(Photos.isHeic);
       const { ok, errors } = await Photos.openMany(files, (i, all) => (busy.textContent = `กำลังเปิดรูป ${i}/${all}${heic ? " (แปลงไฟล์ iPhone อาจใช้เวลาสักครู่)" : ""}…`));
       ok.forEach((x) => URL.revokeObjectURL(x.url)); // ใช้ blob เก็บลงเครื่อง แล้วสร้าง url ใหม่ตอนแสดง
-      if (errors.length) toast(errors.length === 1 ? errors[0] : `เปิดไม่ได้ ${errors.length} ไฟล์ — ใช้รูป JPG, PNG หรือ HEIC`);
+      if (errors.length) toast(errors.length === 1 ? errors[0] : `เปิดไม่ได้ ${errors.length} ไฟล์\u2003ใช้รูป JPG, PNG หรือ HEIC`);
       add(ok);
     }));
     $$("[data-rm]").forEach((b) => (b.onclick = async () => { await Data.delSheet(b.dataset.rm); curIdx[exam.id] = 0; photoStep(exam, stepper, opts); }));
@@ -651,17 +654,18 @@ const Mobile = (() => {
     view(`${stepper}
       <div class="step-body">
         ${strip(items, i, (x) => (x.done ? `<span class="strip-ok">✓</span>` : ""))}
-        <p class="m-lead"><b>แผ่นที่ ${i + 1}${items.length > 1 ? ` จาก ${items.length}` : ""}</b> <span class="muted">${it.auto ? "ระบบหาขอบให้แล้ว ถ้าไม่ตรงลากจุดแก้ได้" : it.guess ? "ตรวจมุมแล้วกดยืนยัน" : "ระบบหาขอบไม่เจอ ลากจุดทั้ง 4 ให้ตรงมุมกระดาษ"}</span></p>
+        <p class="m-lead"><b>แผ่นที่ ${i + 1}${items.length > 1 ? ` จาก ${items.length}` : ""}</b> </p>
+        <p class="hint">${it.auto ? "ระบบหามุมกระดาษให้แล้ว ดูว่าจุดกลมทั้ง 4 จุดอยู่ที่มุมกระดาษไหม ถ้าไม่ตรงให้ลากไปวาง" : it.guess ? "ดูว่าจุดกลมทั้ง 4 จุดอยู่ที่มุมกระดาษไหม ถ้าไม่ตรงให้ลากไปวาง" : "ระบบหามุมกระดาษไม่เจอ ลากจุดกลมทั้ง 4 จุดไปวางที่มุมกระดาษ"}</p>
         <div class="crop" id="crop" style="aspect-ratio:${it.w} / ${it.h}; --ar:${(it.w / it.h).toFixed(4)}">
           <img src="${Data.url(it)}" alt="" draggable="false" />
           <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><path class="crop-shade" fill-rule="evenodd"/><polygon class="crop-edge"/></svg>
           ${pts.map((_, k) => `<button class="handle" data-i="${k}" aria-label="มุมที่ ${k + 1}"></button>`).join("")}
         </div>
         <div class="step-actions row">
-          <button class="btn ghost" id="reset">${it.auto ? "หาขอบใหม่" : "คืนค่ามุม"}</button>
-          <button class="btn primary grow" id="ok">${left ? `ยืนยัน · แผ่นถัดไป` : `ตรวจข้อสอบ${items.length > 1 ? ` ${items.length} แผ่น` : ""}`}${ico("next")}</button>
+          <button class="btn ghost" id="reset">${it.guess ? "กลับไปมุมที่ระบบหา" : "เริ่มใหม่"}</button>
+          <button class="btn primary grow" id="ok">${left ? `ใช้ภาพนี้ ไปแผ่นถัดไป` : `เริ่มตรวจ${items.length > 1 ? ` ${items.length} แผ่น` : ""}`}${ico("next")}</button>
         </div>
-        ${autoLeft ? `<button class="link center-link" id="ok-all">ใช้ขอบที่ระบบหาให้กับทุกแผ่นที่เหลือ (${autoLeft + 1} แผ่น)</button>` : ""}
+        ${autoLeft ? `<button class="link center-link" id="ok-all">ใช้มุมที่ระบบหาให้กับทุกแผ่นที่เหลือ (${autoLeft + 1} แผ่น)</button>` : ""}
       </div>`, opts);
 
     const box = $("#crop");
@@ -715,20 +719,20 @@ const Mobile = (() => {
 
   // 3 ตรวจข้อสอบ — แต่ละแผ่นผ่านโมเดล 3 ขั้น: ตัดครอบภาพ → จับช่องคำตอบ → อ่านลายมือ (ทีละแผ่นตามลำดับ)
   const MODEL_STAGES = [
-    ["ตัดครอบภาพ", "ปรับกระดาษให้ตรงจากสี่เหลี่ยมดำที่มุมกระดาษ"],
-    ["จับช่องคำตอบ", `หาช่องคำตอบ ${MAX_Q} ข้อ × ${MAX_BOX} ช่อง`],
-    ["อ่านลายมือ", "อ่านตัวอักษรทีละช่อง"],
+    ["จัดกระดาษให้ตรง", "หาสี่เหลี่ยมดำที่มุมกระดาษ แล้วดัดภาพให้ตรง"],
+    ["หาช่องคำตอบ", `หาตารางคำตอบ ${MAX_Q} ข้อ`],
+    ["อ่านลายมือ", "อ่านตัวอักษรทีละช่อง และดูว่าช่องไหนขีดฆ่า"],
   ];
   const STAGE_MS = [700, 600, 1100]; // เวลาจำลองต่อขั้น (รูปตัวอย่าง / โหมดจำลอง)
   let gradeUI = null;                // หน้าตรวจที่เปิดอยู่ — ให้ตัวรันโมเดลอัปเดตหน้าจอ
   const perSheet = [];               // เวลาที่ใช้ต่อแผ่นล่าสุด (วินาที) → บอกเวลาที่เหลือโดยประมาณ
   let running = false;
-  // ยังไม่ได้ต่อโมเดลจริง → ทุกแผ่นใช้ผลจำลอง (mockResult) · ต่อโมเดลใหม่ทีหลังที่ runModels [claude/gelatin · 2026-10-28]
-  const usesEngine = () => false;
+  const usesEngine = (it) => !it.sample && Pipeline.isLive(); // รูปตัวอย่างไม่ใช่กระดาษจริง → ใช้ผลจำลองเสมอ
 
   // รันโมเดลทีละแผ่นที่ครอบแล้วแต่ยังไม่มีผล (ทุกข้อสอบ) · ปิดแอปกลางคันแล้วเปิดใหม่ → ตรวจต่อจากแผ่นที่ค้าง (แบบคิวของ Prame)
   // it.run = { stage: ขั้นที่ทำอยู่ 0–2, p: ความคืบหน้าของขั้นนั้น 0–1, note: ข้อความเพิ่ม } · it.error = ตรวจไม่สำเร็จ (ครูครอบใหม่/เอาออก)
-  // ตอนนี้ทั้ง 3 ขั้นเป็นการจำลอง (STAGE_MS) แล้วใช้ mockResult [claude/gelatin · 2026-10-28]
+  // โมเดลจริง (Pipeline.run → engine/ ของ Prame) ทำทั้ง 3 ขั้นเอง: หาสี่เหลี่ยมดำ 3 มุม → ตาราง 20×20 → ว่าง/ตัวอักษร/ขีดฆ่า + A–Z [claude/gelatin · 2026-10-28]
+  // หากระดาษไม่เจอ → ลองใหม่กับภาพที่ครูครอบไว้ (Photos.warp) · รูปตัวอย่าง / โหมดจำลอง = จำลอง 3 ขั้นตาม STAGE_MS แล้วใช้ mockResult
   async function runModels() {
     if (running) return;
     running = true;
@@ -746,10 +750,32 @@ const Mobile = (() => {
         if (!exam) { await Data.delSheet(it.id); continue; }
         cur = it;
         cornersAt = JSON.stringify(it.corners);
+        const tStart = performance.now(), wasReady = Engine.isReady();
         const stage = (s, note = "") => { if (it.run && s !== it.run.stage) it.run = { stage: s, p: 0, note }; else if (it.run) it.run.note = note; progress(it); };
         it.run = { stage: 0, p: 0, note: "" };
         try {
-          {
+          if (usesEngine(it)) {
+            if (!Engine.isReady()) stage(0, "กำลังโหลดระบบตรวจ\u2003ครั้งแรกใช้เวลาสักครู่");
+            await Engine.load();
+            if (gone(it)) { it.run = null; continue; }
+            stage(0);
+            // ส่งรูปเต็ม: โมเดลหาสี่เหลี่ยมดำ 3 มุมแล้วดัดภาพเอง (Phase 1)
+            const onStage = (s) => stage(s);
+            let res;
+            try { res = await Pipeline.run(new File([it.image], it.name || "photo.jpg", { type: it.image.type || "image/jpeg" }), asExam(exam), { onStage }); }
+            catch (err) { res = null; it.firstError = err.message; }
+            if (!res && !gone(it) && Engine.isReady()) {
+              stage(0, "ลองอีกครั้งกับภาพที่ครอบไว้");
+              const warped = await Photos.warp(it.image, it.corners || DEFAULT_CORNERS);
+              res = await Pipeline.run(new File([warped], "sheet.jpg", { type: "image/jpeg" }), asExam(exam), { onStage }).catch(() => null);
+            }
+            if (gone(it)) { it.run = null; continue; }
+            if (!res) throw new Error(it.firstError || "ตรวจไม่สำเร็จ");
+            // เก็บภาพหน้าสแกน (ใช้ดูลายมือตอนแก้) เป็น Blob — ไม่ค้างเป็นข้อความ base64 ในทุกแผ่น
+            if (res.images?.rectified) it.hand = await (await fetch(res.images.rectified)).blob().catch(() => null);
+            delete res.images;
+            it.result = res;
+          } else {
             for (let s = 0; s < MODEL_STAGES.length; s++) {
               it.run = { stage: s, p: 0 };
               const t0 = performance.now();
@@ -765,10 +791,12 @@ const Mobile = (() => {
           }
         } catch (err) {
           if (gone(it)) { it.run = null; continue; }
-          it.error = err?.name === "QuotaExceededError" ? storageError(err) : err.message;
+          it.error = err?.name === "QuotaExceededError" ? storageError(err)
+            : Engine.state().status === "error" ? `โหลดระบบตรวจไม่สำเร็จ (${err.message})\u2003ลองใหม่อีกครั้ง` : err.message;
         }
         delete it.firstError;
         // ไม่นับแผ่นแรกที่ต้องโหลดโมเดล (นานผิดปกติ) · เก็บ 10 แผ่นล่าสุด
+        if (usesEngine(it) && wasReady && it.result) { perSheet.push((performance.now() - tStart) / 1000); if (perSheet.length > 10) perSheet.shift(); }
         it.run = null;
         cur = null;
         if (gone(it)) { if (Data.sheet(it.id)) { it.result = null; it.error = null; } continue; }
@@ -796,22 +824,22 @@ const Mobile = (() => {
     const eta = (left) => {
       if (left < 3 || !perSheet.length) return "";
       const min = Math.ceil((left * perSheet.reduce((a, x) => a + x, 0)) / perSheet.length / 60);
-      return ` · เหลือประมาณ ${min} นาที`;
+      return `\u2003เหลือประมาณ ${min} นาที`;
     };
     const summary = () => {
       const n = items.length, d = doneN(), e = errN(), r = runningAt();
       const run = r >= 0 ? items[r].run : null;
       const pct = ((d + e + (run ? (run.stage + run.p) / MODEL_STAGES.length : 0)) / n) * 100;
       const text = d === n ? `ตรวจครบ ${n} แผ่นแล้ว`
-        : r < 0 ? `ตรวจได้ ${d} จาก ${n} แผ่น · มีปัญหา ${e} แผ่น`
-        : `กำลังตรวจ${n > 1 ? `แผ่นที่ ${r + 1} จาก ${n}` : ""}${run ? ` · ${MODEL_STAGES[run.stage][0]}` : ""}${eta(n - d - e)}`;
+        : r < 0 ? `ตรวจได้ ${d} จาก ${n} แผ่น\u2003มีปัญหา ${e} แผ่น`
+        : `กำลังตรวจ${n > 1 ? `แผ่นที่ ${r + 1} จาก ${n}` : ""}${run ? `\u2003${MODEL_STAGES[run.stage][0]}` : ""}${eta(n - d - e)}`;
       return `<div class="run-sum-t"><span>${text}</span><b>${Math.floor(pct)}%</b></div>
         <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(pct)}"><i style="width:${pct}%"></i></div>`;
     };
 
     const stages = (it) => {
       const r = runningAt();
-      return `<div id="stages"><ol class="stages">${MODEL_STAGES.map(([t, d], s) => {
+      return `<div id="stages">${usesEngine(it) ? `<p class="hint">ใช้เวลาประมาณ 1 นาทีต่อแผ่น เปิดหน้านี้ไว้จนตรวจเสร็จ (ถ้าปิดแอป เปิดใหม่แล้วระบบตรวจต่อให้)</p>` : ""}<ol class="stages">${MODEL_STAGES.map(([t, d], s) => {
         const st = !it.run ? "wait" : s < it.run.stage ? "done" : s === it.run.stage ? "now" : "wait";
         const p = st === "done" ? 100 : st === "now" ? Math.floor(it.run.p * 100) : 0;
         return `<li class="${st}"><span class="st-ico">${st === "done" ? "✓" : s + 1}</span>
@@ -819,13 +847,13 @@ const Mobile = (() => {
           <span class="st-p">${st === "wait" ? "" : p + "%"}</span></li>`;
       }).join("")}</ol>
       ${it.run?.note ? `<p class="muted small center">${esc(it.run.note)}</p>` : ""}
-      ${!it.run && r >= 0 && items[r] !== it ? `<p class="muted small center">รอคิว — กำลังตรวจแผ่นที่ ${r + 1} อยู่</p>` : ""}</div>`;
+      ${!it.run && r >= 0 && items[r] !== it ? `<p class="muted small center">รอคิว\u2003กำลังตรวจแผ่นที่ ${r + 1} อยู่</p>` : ""}</div>`;
     };
 
     // แผ่นที่ตรวจไม่สำเร็จ: บอกเหตุผล + ทางแก้ (ครอบใหม่ / ลองอีกครั้ง / เอาออก)
     const errorBox = (it) => `<div class="run-err" id="stages" role="alert">
         <b>ตรวจแผ่นนี้ไม่สำเร็จ</b><p>${esc(it.error)}</p>
-        <p class="small muted">มักเกิดจากรูปไม่เห็นสี่เหลี่ยมดำที่มุมกระดาษครบ — ครอบภาพให้กว้างขึ้น หรือถ่ายใหม่ให้เห็นทั้งแผ่น</p>
+        <p class="small muted">มักเกิดจากรูปไม่เห็นสี่เหลี่ยมดำที่มุมกระดาษครบ\u2003ครอบภาพให้กว้างขึ้น หรือถ่ายใหม่ให้เห็นทั้งแผ่น</p>
         <div class="row-btns">
           <button class="btn ghost" id="e-crop">ครอบภาพใหม่</button>
           <button class="btn ghost" id="e-retry">ลองอีกครั้ง</button>
@@ -861,7 +889,7 @@ const Mobile = (() => {
         for (const x of items) { x.saved = true; await Data.putSheet(x); }
         gradeUI = null;
         curIdx[exam.id] = 0;
-        toast(`บันทึกคะแนน ${items.length} แผ่นแล้ว${review ? ` · ยังมี ${review} ข้อที่ระบบไม่แน่ใจ` : ""}`);
+        toast(`บันทึกคะแนน ${items.length} แผ่นแล้ว${review ? `\u2003ยังมี ${review} ข้อที่ระบบไม่แน่ใจ` : ""}`);
         location.hash = `#/exam/${exam.id}`;
       };
     }
@@ -904,14 +932,14 @@ const Mobile = (() => {
     const whoLine = () => {
       if (!rosterOf(exam).length) return "";
       const st = studentMatch(s, exam);
-      return st ? `${esc(st.name)} · ${esc(st.room)}${st.no ? ` เลขที่ ${st.no}` : ""}` : `<span class="bad">ไม่พบในรายชื่อ${exam.rooms.length ? ` ${esc(exam.rooms.join(", "))}` : ""}</span>`;
+      return st ? `${esc(st.name)}\u2003${esc(st.room)}${st.no ? ` เลขที่ ${st.no}` : ""}` : `<span class="bad">ไม่พบในรายชื่อ${exam.rooms.length ? ` ${esc(exam.rooms.join(", "))}` : ""}</span>`;
     };
-    const MARK = { right: "✓", wrong: "✗", partial: "½", review: "?" };
-    const NOTE = { right: "ถูก", wrong: "ผิด", partial: "ได้บางส่วน", review: "ระบบไม่แน่ใจ" };
+    const MARK = { right: "✓", wrong: "✗", partial: "½", review: "?", extra: "!" };
+    const NOTE = { right: "ถูก", wrong: "ผิด", partial: "ได้บางส่วน", review: "ระบบไม่แน่ใจ", extra: "ต้องเว้นว่าง" };
 
     const cellsOf = (q) => s.result.reads[q - 1].map((c, j) => ({ ...c, j })).filter((c) => c.cls !== "empty");
     const cellHtml = (c, keyCh, btn) => {
-      const cls = [c.cls === "crossed" ? "x" : "", c.cls === "char" && c.conf < lowConf() ? "low" : "", c.cls === "char" && keyCh && c.char.toUpperCase() !== keyCh ? "diff" : "", selC === c.j ? "sel" : ""].join(" ");
+      const cls = [c.cls === "crossed" ? (c.char ? "x" : "x x0") : "", c.cls === "char" && c.conf < lowConf() ? "low" : "", c.cls === "char" && keyCh && c.char.toUpperCase() !== keyCh ? "diff" : "", selC === c.j ? "sel" : ""].join(" ");
       const ch = esc(c.lower ? c.char.toLowerCase() : c.char);
       return btn ? `<button class="c ${cls}" data-c="${c.j}" aria-label="ช่องที่ ${c.j + 1}: ${ch}">${ch}</button>` : `<i class="c ${cls}">${ch}</i>`;
     };
@@ -924,12 +952,14 @@ const Mobile = (() => {
           <label class="sid">เลขประจำตัว<input id="sid" value="${esc(studentOf(s))}" inputmode="numeric" autocomplete="off" />
             <small id="sid-who">${whoLine()}</small></label>
         </div>
-        ${exam.sets > 1 ? `<div class="set-pick"><span class="small muted">ชุดข้อสอบ${s.setOverride ? " (ครูเลือก)" : " (อ่านจากกระดาษ)"}</span>
+        ${exam.sets > 1 ? `<div class="set-pick"><span class="small muted">ชุดข้อสอบ${s.setOverride ? " (ครูเลือก)" : s.result.model ? " (ระบบยังอ่านชุดไม่ได้ เลือกให้ตรงกับกระดาษ)" : " (อ่านจากกระดาษ)"}</span>
           <div class="seg" role="radiogroup">${Array.from({ length: exam.sets }, (_, k) => `<button data-set-o="${k + 1}" class="${g.set === k + 1 ? "on" : ""}" role="radio" aria-checked="${g.set === k + 1}">ชุดที่ ${k + 1}</button>`).join("")}</div></div>` : ""}
-        ${s.result.header?.student_id?.review && !s.studentId ? `<p class="review-note">ระบบอ่านเลขประจำตัวไม่ชัด — ตรวจเลขด้านบนอีกครั้ง</p>` : ""}
+        ${s.result.header?.student_id?.review && !s.studentId ? `<p class="review-note">ระบบอ่านเลขประจำตัวไม่ชัด\u2003ตรวจเลขด้านบนอีกครั้ง</p>` : ""}
         ${(s.result.quality?.warnings || []).map((w) => `<p class="review-note">${esc(w)}</p>`).join("")}
-        ${g.review ? `<p class="review-note">ระบบไม่แน่ใจ ${g.review} ข้อ — แตะข้อที่มี ? เพื่อตรวจ</p>` : ""}
-        ${s.result.mock ? `<p class="sim-note">${s.sample ? "รูปตัวอย่าง — ผลจำลอง ไม่ได้อ่านจากโมเดลจริง" : "โหมดจำลอง — ยังไม่ได้ต่อโมเดลจริง ผลไม่ได้อ่านจากรูปจริง"}</p>` : ""}
+        ${g.review ? `<p class="review-note">ระบบไม่แน่ใจ ${g.review} ข้อ\u2003แตะข้อที่มี ? เพื่อตรวจ</p>` : ""}
+        ${s.result.mock ? `<p class="sim-note">${s.sample ? "รูปตัวอย่าง\u2003ผลจำลอง ไม่ได้อ่านจากโมเดลจริง" : "โหมดจำลอง\u2003ผลไม่ได้อ่านจากรูปจริง (เปลี่ยนได้ที่ ตั้งค่า › ระบบตรวจ)"}</p>` : ""}
+        ${(() => { const n = (k) => g.rows.filter((r) => r.status === k).length; return `<p class="res-count">${[["right", "ถูก"], ["partial", "ได้บางส่วน"], ["wrong", "ผิด"], ["review", "ให้ครูดู"], ["extra", "ต้องเว้นว่าง"]].filter(([k]) => n(k) || k === "right" || k === "wrong").map(([k, l]) => `<span class="rc-${k}">${l} <b>${n(k)}</b></span>`).join("")}</p>`; })()}
+        <p class="legend"><span><i class="c diff">A</i>ไม่ตรงเฉลย</span><span><i class="c x x0"></i>ขีดฆ่า ไม่นับ</span><span><i class="c low">?</i>ระบบไม่แน่ใจ</span></p>
         <ol class="answers">${g.rows.map((r) => {
           let k = 0;
           const cells = cellsOf(r.q).map((c) => cellHtml(c, c.cls === "char" ? r.key[k++] : "", false)).join("");
@@ -938,13 +968,15 @@ const Mobile = (() => {
             <button class="row-main" data-q="${r.q}" aria-expanded="${open}">
               <span class="q">${r.q}</span>
               <span class="ans"><span class="boxes">${cells || `<span class="muted small">ไม่ได้ตอบ</span>`}</span>
-                <small>เฉลย ${esc(r.key)}${r.note ? ` · ${esc(r.note)}` : ""}${r.override ? " · ครูแก้" : ""}</small></span>
+                <small>${r.key ? `เฉลย <b>${esc(r.key)}</b>` : "ไม่มีเฉลย"}${r.note ? `<span class="nt">${esc(r.note)}</span>` : ""}${r.override ? `<span class="nt">ครูแก้</span>` : ""}</small></span>
               <span class="mark" aria-label="${NOTE[r.status] || ""}">${MARK[r.status] || ""}</span>
             </button>
             ${open ? editor(r) : ""}
           </li>`;
         }).join("")}
-        </ol>`;
+        </ol>
+        ${g.blankOk ? `<p class="small muted blank-ok">ข้อที่ไม่มีเฉลย ${g.blankOk} ข้อ นักเรียนเว้นว่างไว้ถูกต้อง</p>` : ""}
+        <p class="small muted">แตะข้อเพื่อดูลายมือจริงและแก้ตัวที่อ่านผิด</p>`;
       bind();
     }
 
@@ -964,9 +996,9 @@ const Mobile = (() => {
           <input class="pick-in" maxlength="1" autocapitalize="characters" autocomplete="off" placeholder="พิมพ์" aria-label="พิมพ์ตัวอักษรที่ถูก" />
           <button class="chip ghost" data-pick="">ลบช่องนี้</button>
         </div>` : ""}
-        <div class="seg" role="group" aria-label="การนับคะแนนข้อนี้">
+        ${r.status === "extra" ? `<p class="small muted">ข้อนี้ไม่มีเฉลย นักเรียนควรเว้นว่าง ไม่นับคะแนน</p>` : `<div class="seg" role="group" aria-label="การนับคะแนนข้อนี้">
           ${[["", "ตามเกณฑ์"], ["right", "นับถูก"], ["wrong", "นับผิด"]].map(([v, l]) => `<button data-o="${v}" class="${o === v ? "on" : ""}" aria-pressed="${o === v}">${l}</button>`).join("")}
-        </div>
+        </div>`}
       </div>`;
     }
 
@@ -980,8 +1012,9 @@ const Mobile = (() => {
       handImg(s).then((im) => {
         if (!cv.isConnected) return;
         const W = im.naturalWidth, H = im.naturalHeight;
-        const x1 = Math.min(...row.map((b) => b[0])) * W, x2 = Math.max(...row.map((b) => b[2])) * W;
+        let x1 = Math.min(...row.map((b) => b[0])) * W, x2 = Math.max(...row.map((b) => b[2])) * W;
         const y1 = Math.min(...row.map((b) => b[1])) * H, y2 = Math.max(...row.map((b) => b[3])) * H;
+        if (x2 - x1 < (y2 - y1) * 4) x2 = Math.min(W, x1 + (y2 - y1) * 4); // คำสั้น (1–2 ตัว) → ตัดกว้างขึ้นให้เห็นช่องข้างๆ ด้วย [claude/gelatin · 2026-10-28]
         const pad = (y2 - y1) * 0.15;
         cv.width = Math.round(x2 - x1 + 2 * pad); cv.height = Math.round(y2 - y1 + 2 * pad);
         cv.getContext("2d").drawImage(im, x1 - pad, y1 - pad, cv.width, cv.height, 0, 0, cv.width, cv.height);
@@ -1018,7 +1051,7 @@ const Mobile = (() => {
     const u = Session.user();
     // พื้นที่ที่ใช้ (รูปกระดาษ ~1 MB ต่อแผ่น) — เพื่อให้ครูรู้ว่าควรลบรูปของการสอบที่ส่งคะแนนแล้ว
     let storageLine = "";
-    try { const e = await navigator.storage?.estimate?.(); if (e?.usage) storageLine = ` · ตอนนี้ใช้พื้นที่ ${Math.round(e.usage / 1e6)} MB (${Data.all().filter((x) => x.image).length} แผ่นที่มีรูป)`; } catch {}
+    try { const e = await navigator.storage?.estimate?.(); if (e?.usage) storageLine = `\u2003ตอนนี้ใช้พื้นที่ ${Math.round(e.usage / 1e6)} MB (${Data.all().filter((x) => x.image).length} แผ่นที่มีรูป)`; } catch {}
     const st = Settings.get();
     const seg = (name, opts) => `<div class="seg" role="radiogroup">${opts.map(([v, l]) =>
       `<button type="button" data-set="${name}" data-v="${v}" class="${st[name] === v ? "on" : ""}" role="radio" aria-checked="${st[name] === v}">${l}</button>`).join("")}</div>`;
@@ -1030,8 +1063,9 @@ const Mobile = (() => {
 
       <h2 class="sec-h">ระบบตรวจ</h2>
       <section class="m-card rules">
-        <div class="rule"><span>อ่านลายมือด้วย</span><b>โหมดจำลอง</b></div>
-        <p class="small muted">ยังไม่ได้ต่อโมเดลอ่านลายมือ — ตอนนี้คะแนนเป็นผลจำลอง ไม่ได้อ่านจากรูปจริง</p>
+        <div class="rule"><span>อ่านลายมือด้วย</span>${seg("reader", [["model", "โมเดลจริง"], ["mock", "โหมดจำลอง"]])}</div>
+        <div class="rule eng-st"><span id="eng-t"></span><button type="button" class="btn ghost sm" id="eng-load" hidden>โหลดไว้ก่อน</button></div>
+        <p class="small muted">โมเดลทำงานในเครื่องนี้ รูปไม่ถูกส่งออกไป\u2003ครั้งแรกต้องดาวน์โหลดประมาณ 50 MB (ใช้ WiFi จะดีกว่า) ครั้งต่อไปเบราว์เซอร์จำไว้ให้\u2003อ่านแผ่นละประมาณ 30 ถึง 90 วินาที</p>
       </section>
 
       <h2 class="sec-h">เกณฑ์ตรวจ</h2>
@@ -1049,11 +1083,11 @@ const Mobile = (() => {
 
       <h2 class="sec-h">ข้อมูลจากฝ่ายวิชาการ</h2>
       <section class="m-card rules">
-        <div class="rule"><span>${st.schoolName ? `<b>${esc(st.schoolName)}</b> · ` : ""}${esc(termLabel(st))}</span>
-          <small class="muted">${Data.classes().length ? `${Data.classes().length} ห้อง · นักเรียน ${Data.classes().reduce((a, c) => a + (c.students?.length || 0), 0)} คน` : "ยังไม่มีรายชื่อนักเรียน"}${st.rulesFromSchool ? " · ใช้เกณฑ์ตรวจของโรงเรียน" : ""}</small></div>
+        <div class="rule"><span>${st.schoolName ? `<b>${esc(st.schoolName)}</b>\u2003` : ""}${esc(termLabel(st))}</span>
+          <small class="muted">${Data.classes().length ? `${Data.classes().length} ห้อง\u2003นักเรียน ${Data.classes().reduce((a, c) => a + (c.students?.length || 0), 0)} คน` : "ยังไม่มีรายชื่อนักเรียน"}${st.rulesFromSchool ? "\u2003ใช้เกณฑ์ตรวจของโรงเรียน" : ""}</small></div>
         <label class="rule">ชื่อครู (ใส่ในไฟล์ส่งคะแนน)<input id="tname" value="${esc(st.teacherName || "")}" placeholder="${esc(u.name)}" autocomplete="name" /></label>
         <label class="btn ghost block file-btn">${ico("upload")}นำเข้าไฟล์จากฝ่ายวิชาการ<input type="file" accept=".json,application/json" hidden id="pkg" /></label>
-        <p class="small muted">ได้รายชื่อนักเรียน รายวิชา ข้อสอบกลาง และเกณฑ์ตรวจของโรงเรียน · ขอไฟล์ได้จากฝ่ายวิชาการ (Dashboard › รายวิชาและครู)</p>
+        <p class="small muted">ได้รายชื่อนักเรียน รายวิชา ข้อสอบกลาง และเกณฑ์ตรวจของโรงเรียน\u2003ขอไฟล์ได้จากฝ่ายวิชาการ (Dashboard › รายวิชาและครู)</p>
       </section>
 
       <h2 class="sec-h">ข้อมูลในเครื่อง</h2>
@@ -1062,7 +1096,7 @@ const Mobile = (() => {
         <label class="file-row">${ico("upload")}กู้คืนจากไฟล์สำรอง<input type="file" accept=".json,application/json" hidden id="restore" /></label>
         <button id="wipe" class="danger">${ico("trash")}ลบข้อสอบและคะแนนทั้งหมด</button>
       </section>
-      <p class="small muted pad">ข้อสอบ รูป และคะแนนเก็บในเครื่องนี้เท่านั้น ไม่ได้ส่งไปที่ไหน — สำรองไว้ก่อนเปลี่ยนเครื่องหรือล้างเบราว์เซอร์${storageLine}</p>
+      <p class="small muted pad">ข้อสอบ รูป และคะแนนเก็บในเครื่องนี้เท่านั้น ไม่ได้ส่งไปที่ไหน\u2003สำรองไว้ก่อนเปลี่ยนเครื่องหรือล้างเบราว์เซอร์${storageLine}</p>
 
       <section class="m-card list">
         <button id="logout" class="danger">${ico("logout")}ออกจากระบบ</button>
@@ -1095,7 +1129,7 @@ const Mobile = (() => {
           await Data.putSheet({ ...s, image: typeof s.image === "string" ? await (await fetch(s.image)).blob() : null }); // ไฟล์สำรองรุ่นก่อนมีรูปเป็น dataURL
         }
         await Data.reloadClasses();
-        toast(`กู้คืนแล้ว: ${(data.exams || []).length} ข้อสอบ · ${(data.sheets || []).length} แผ่น`);
+        toast(`กู้คืนแล้ว: ${(data.exams || []).length} ข้อสอบ\u2003${(data.sheets || []).length} แผ่น`);
       } catch (err) { toast("กู้คืนไม่สำเร็จ: " + err.message); }
       e.target.value = "";
     };
@@ -1107,12 +1141,26 @@ const Mobile = (() => {
       try {
         const n = await Transfer.importPackage(await readJsonFile(e.target.files[0]));
         await Data.reloadClasses();
-        toast(`นำเข้าแล้ว: ${n.classes} ห้อง · ${n.subjects} วิชา · ข้อสอบกลาง ${n.exams} ชุด`);
+        toast(`นำเข้าแล้ว: ${n.classes} ห้อง\u2003${n.subjects} วิชา\u2003ข้อสอบกลาง ${n.exams} ชุด`);
         settingsView();
       } catch (err) { toast(err.message); }
       e.target.value = "";
     };
 
+    // สถานะระบบตรวจ (อัปเดตสดระหว่างโหลด) [claude/gelatin · 2026-10-28]
+    const engUI = (e = Engine.state()) => {
+      const t = $("#eng-t");
+      if (!t) return;
+      const mock = Settings.get().reader === "mock";
+      t.textContent = mock ? "ใช้ผลจำลอง ไม่ได้อ่านจากรูปจริง" : e.status === "ready" ? "พร้อมตรวจ" : e.status === "loading" ? e.text || "กำลังโหลด…" : e.status === "error" ? `โหลดไม่สำเร็จ: ${e.error}` : "ยังไม่ได้โหลด\u2003จะโหลดเองตอนเริ่มถ่ายรูป";
+      t.className = e.status === "error" && !mock ? "err-t" : "";
+      $("#eng-load").hidden = mock || e.status === "ready" || e.status === "loading";
+      $("#eng-load").textContent = e.status === "error" ? "ลองอีกครั้ง" : "โหลดไว้ก่อน";
+    };
+    engUI();
+    $("#eng-load").onclick = () => Engine.load().then(() => runModels()).catch(() => {});
+    $$('[data-set="reader"]').forEach((b) => b.addEventListener("click", () => engUI()));
+    return Engine.onChange(engUI);
   }
 
   // ---------- ตัวช่วย ----------

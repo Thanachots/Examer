@@ -351,3 +351,34 @@ input[type="date"], input[type="number"] { width: 100%; min-height: 46px; paddin
 .rule input:not([type]) { min-height: 42px; font-weight: 400; }
 .file-btn { margin-top: 12px; cursor: pointer; }
 .center-link { display: block; margin: 6px auto 0; font-size: 15px; }
+
+/* [claude/gelatin · 2026-10-28] UI เข้าใจง่ายขึ้น: เฉลย 20 ข้อ · คำแนะนำ · สรุปผล · คำอธิบายสัญลักษณ์ */
+.wiz-t { margin-left: auto; font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+.hint { margin: 0; padding: 10px 12px; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--ink); font-size: 14px; line-height: 1.6; }
+.set-tabs { display: grid; gap: 8px; }
+.set-tabs .seg small { margin-left: 4px; font-size: 12px; opacity: .8; }
+.set-acts { display: flex; gap: 18px; flex-wrap: wrap; }
+.set-acts .link { display: inline-flex; align-items: center; gap: 4px; }
+.qa-head { display: grid; grid-template-columns: 24px minmax(0, 1fr) 96px; gap: 8px; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
+.qa-head span:last-child { text-align: center; }
+.qa-list li { grid-template-columns: 24px minmax(0, 1fr) 96px; }
+.pts-cell { display: flex; justify-content: center; }
+.pts-off { font-size: 13px; color: var(--muted); }
+.qa-list li.blank .qa-in { border-style: dashed; background: transparent; }
+.qa-list li.blank .q { color: var(--muted); }
+.tips { margin: 0; padding-left: 20px; display: grid; gap: 8px; text-align: left; font-size: 14px; line-height: 1.5; }
+.res-count { margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; color: var(--muted); }
+.res-count b { margin-left: 2px; font-size: 16px; color: var(--ink); }
+.rc-right b { color: var(--ok); }
+.rc-wrong b { color: var(--bad); }
+.rc-partial b, .rc-review b, .rc-extra b { color: var(--warn); }
+.legend { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend .c { width: 18px; height: 22px; font-size: 14px; }
+.c.x0 { position: relative; }
+.c.x0::after { content: ""; position: absolute; inset: 3px; background: linear-gradient(to top right, transparent calc(50% - 1px), currentColor calc(50% - 1px), currentColor calc(50% + 1px), transparent calc(50% + 1px)); }
+.ans small b { color: var(--ink); font-weight: 600; }
+.ans small .nt { margin-left: 12px; }
+.row.st-extra .row-main { background: var(--warn-soft); }
+.st-extra .mark { color: var(--warn); }
+.blank-ok { margin: 0; padding: 2px; }

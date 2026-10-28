@@ -1,16 +1,18 @@
 // Examer pipeline — จุดเดียวที่หน้า app เรียกระบบตรวจ (รูปแบบข้อมูล: docs/ENGINE.md) + เกณฑ์ให้คะแนน
 //
-// ยังไม่ได้ต่อโมเดลจริง — ตอนนี้ใช้ผลจำลอง (mockResult) อย่างเดียว · engine ชุดเก่าถูกเอาออกแล้ว [claude/gelatin · 2026-10-28]
-// ต่อโมเดลใหม่ทีหลังที่ Pipeline.run (จุดเดียว)
+// โมเดลจริง = engine/ ของ Prame (Pyodide + onnxruntime-web) รันในเบราว์เซอร์ทั้งหมด ไม่มี server ไม่ส่งรูปออก [claude/gelatin · 2026-10-28]
+//   Engine (ด้านล่าง) ห่อ Examer ใน engine/examer.js · fromModel แปลงผลของโมเดล (rows/cells) → รูปแบบที่หน้า app ใช้ (reads)
+// ตั้งค่า "โหมดจำลอง" ได้ในหน้าตั้งค่า (ใช้ทดสอบหน้าจอโดยไม่ต้องโหลดโมเดล) · รูปตัวอย่างใช้ผลจำลองเสมอ
 //
 // Result (ฟิลด์ที่หน้า app ใช้):
-//   student_id, subject_id, school_id: string     // ตัวเลขจากช่องรหัสส่วนหัว
+//   student_id, subject_id, school_id: string     // ตัวเลขจากช่องรหัสส่วนหัว (โมเดลตอนนี้ยังไม่อ่าน → "")
 //   header?: { student_id: {value, min_conf, review}, ... }
-//   set|question_set: 1|2|3|null, page: 1–4|null  // วงกลม ชุดกระดาษคำถาม / หน้ากระดาษคำตอบ
+//   set|question_set: 1|2|3|null, page: 1–4|null  // วงกลม ชุดกระดาษคำถาม / หน้ากระดาษคำตอบ (โมเดลยังไม่อ่านชุด → สุ่มไว้ก่อน ครูเลือกเองได้)
 //   images?: { rectified, overlay }               // ภาพหลังตัดขอบ / ภาพตีกรอบช่อง (dataURL)
 //   cells: { box: {x,y,w,h} }                     // กรอบตาราง (สัดส่วน 0–1)
-//   reads: Cell[20][20]   Cell = { char, conf, cls: "char"|"empty"|"crossed", bbox?: [x1,y1,x2,y2], top3?: [[ch,p]] }
+//   reads: Cell[20][20]   Cell = { char, conf, cls: "char"|"empty"|"crossed", bbox?: [x1,y1,x2,y2] (สัดส่วน 0–1), top3?: [[ch,p]] }
 //   quality?: { markers_found, timing_bars, warnings }, timing_ms?
+//   model?: { seconds, needs_review, line_rows }    // จากโมเดลจริงเท่านั้น
 
 const ROWS = 20;
 const COLS = 20;
@@ -21,12 +23,99 @@ const DEMO_KEY = [
   "NEURAL", "CAMERA", "TABLE", "MOBILE", "SCORE", "EXAM", "WRITE", "READ", "SHEET", "THAILAND",
 ];
 
-const Pipeline = {
-  isLive: () => false, // ยังไม่มีโมเดลจริง
+// ---------- โมเดลจริง (engine/examer.js) ---------- [claude/gelatin · 2026-10-28]
+// state: idle (ยังไม่โหลด) · loading · ready · error — หน้าตั้งค่า/หน้าตรวจฟังด้วย onChange
+const Engine = (() => {
+  let st = { status: "idle", text: "" }, waiting = null, onStep = null;
+  const subs = new Set();
+  const set = (patch) => { st = { ...st, ...patch }; subs.forEach((f) => { try { f(st); } catch {} }); };
+  const has = () => typeof Examer !== "undefined";
+  if (has()) {
+    Examer.onProgress = (msg, step) => { if (step) onStep?.(step, msg); }; // ข้อความของ worker เป็นศัพท์เทคนิค → หน้าตั้งค่าแสดง "กำลังโหลด" อย่างเดียว
+    Examer.onReady = () => { set({ status: "ready", text: "", error: "" }); waiting?.ok(); waiting = null; };
+    Examer.onError = (msg) => { set({ status: "error", error: msg }); waiting?.fail(new Error(msg)); waiting = null; Examer.reset(); };
+  }
+  return {
+    available: has,
+    state: () => st,
+    isReady: () => st.status === "ready",
+    onChange(f) { subs.add(f); return () => subs.delete(f); },
+    // โหลด Python + โมเดล (~50 MB ครั้งแรก ครั้งต่อไปเบราว์เซอร์จำไว้) · เรียกซ้ำได้ ไม่โหลดซ้ำ
+    load() {
+      if (!has()) return Promise.reject(new Error("ไม่พบระบบตรวจ (engine/examer.js)"));
+      if (st.status === "ready") return Promise.resolve();
+      if (!waiting) {
+        let ok, fail;
+        const p = new Promise((a, b) => { ok = a; fail = b; });
+        waiting = { p, ok, fail };
+        set({ status: "loading", text: "กำลังโหลดระบบตรวจ", error: "" });
+        Examer.warmup();
+      }
+      return waiting.p;
+    },
+    // อ่านกระดาษ 1 แผ่น → ผลดิบของโมเดล · step(1–4) = Phase 1 / 2A / 2B / 3
+    async read(file, step) {
+      await this.load();
+      onStep = step || null;
+      try { return await Examer.read(file); } finally { onStep = null; }
+    },
+  };
+})();
 
+// ผลของโมเดล (model/README.md: rows[].mode "cell" → cells 20 ช่อง "A–Z" / "" ว่าง / "-" ขีดฆ่า / "?" ไม่แน่ใจ ·
+// "line" = เขียนทับเส้นตาราง มีแค่ letters เรียงกัน) → Result ของหน้า app
+// กรอบ (boxes) อยู่บนภาพสแกน 2480×3508 → แปลงเป็นสัดส่วน 0–1 · "?" ให้ conf = 0 → ครูต้องตรวจข้อนั้นเสมอ
+const SCAN_W = 2480, SCAN_H = 3508;
+function fromModel(R, exam) {
+  if (!R?.ok) {
+    // ข้อความจากโมเดลขึ้นต้นด้วยชื่อเฟส (Phase 1: ...) → แปลงเป็นคำที่ครูเข้าใจ
+    const e = String(R?.error || "");
+    throw new Error(/^Phase 1/i.test(e) ? "หากระดาษในรูปไม่เจอ ถ่ายใหม่ให้เห็นสี่เหลี่ยมดำที่มุมกระดาษครบ 3 มุม"
+      : /^Phase 2/i.test(e) ? "หาตารางคำตอบไม่ครบ 20 ข้อ ถ่ายใหม่ให้เห็นทั้งแผ่นและไม่เอียง"
+      : e.replace(/^Phase \w+:\s*/i, "") || "อ่านกระดาษไม่สำเร็จ");
+  }
+  const bb = (b) => (b ? [b[0] / SCAN_W, b[1] / SCAN_H, b[2] / SCAN_W, b[3] / SCAN_H] : undefined);
+  const cell = (ch, conf, box) => {
+    if (!ch) return { char: "", conf: 1, cls: "empty" };
+    if (ch === "-") return { char: "", conf: 1, cls: "crossed", bbox: bb(box) };
+    if (ch === "?") return { char: "?", conf: 0, cls: "char", bbox: bb(box), unsure: true };
+    return { char: ch, conf: conf ?? 1, cls: "char", bbox: bb(box) };
+  };
+  const reads = [];
+  for (let i = 0; i < ROWS; i++) {
+    const r = R.rows?.[i];
+    const seq = !r ? [] : r.mode === "cell" ? r.cells : r.letters || [];
+    const row = seq.slice(0, COLS).map((ch, k) => cell(ch, r.conf?.[k], r.boxes?.[k]));
+    while (row.length < COLS) row.push({ char: "", conf: 1, cls: "empty" });
+    if (r?.mode === "line") row.line = true;
+    reads.push(row);
+  }
+  const sets = usedSets(exam);
+  const warnings = [];
+  if (R.qc_warning) warnings.push("ภาพเอียงหรือบิดมาก\u2003ถ้าผลดูแปลก ให้ถ่ายใหม่ให้ตรงกว่านี้");
+  return {
+    student_id: "", subject_id: "", school_id: "",
+    set: sets[Math.floor(Math.random() * sets.length)], // โมเดลยังไม่อ่านวงกลมชุด → สุ่มไว้ก่อน (ครูเลือกเองได้)
+    page: 1,
+    images: R.scan_jpg ? { rectified: "data:image/jpeg;base64," + R.scan_jpg } : undefined,
+    cells: { box: { x: 0, y: 0, w: 1, h: 1 } },
+    reads,
+    quality: { markers_found: R.phase1?.path === "markers" ? 3 : null, warnings },
+    model: { seconds: R.seconds, needs_review: R.needs_review, line_rows: (R.rows || []).filter((r) => r.mode === "line").map((r) => r.row) },
+  };
+}
+
+const Pipeline = {
+  isLive: () => Settings.get().reader !== "mock" && Engine.available(),
+
+  // ctx: { onStage(0–2) } — ขั้นที่หน้า app แสดง: 0 ตัดครอบภาพ · 1 จับช่องคำตอบ · 2 อ่านลายมือ
   async run(file, exam, ctx = {}) {
-    await new Promise((r) => setTimeout(r, 120));
-    return mockResult(exam, ctx);
+    if (!this.isLive()) {
+      await new Promise((r) => setTimeout(r, 120));
+      return mockResult(exam, ctx);
+    }
+    const R = await Engine.read(file, (step) => ctx.onStage?.(step <= 1 ? 0 : step === 2 ? 1 : 2));
+    return fromModel(R, exam);
   },
 
   async demoSheet(exam, ctx) {
@@ -55,8 +144,9 @@ function mockResult(exam, ctx = {}) {
   const key = exam.keys?.[set] || [];
   const reads = [];
   for (let i = 0; i < ROWS; i++) {
-    const answer = (key[(page - 1) * ROWS + i] || DEMO_KEY[i]).slice(0, COLS);
-    reads.push(mockRow(studentWrites(answer)));
+    // ข้อที่ไม่มีเฉลย = นักเรียนต้องเว้นว่าง → จำลองให้ส่วนใหญ่เว้นว่าง (บางแผ่นเผลอเขียน) [claude/gelatin · 2026-10-28]
+    const answer = (key.some(Boolean) ? key[(page - 1) * ROWS + i] || (rand() < 0.03 ? DEMO_KEY[i] : "") : DEMO_KEY[i]).slice(0, COLS);
+    reads.push(mockRow(answer ? studentWrites(answer) : ""));
   }
   const sid = ctx.studentId ?? String(10000 + Math.floor(rand() * 90000));
   return {
@@ -117,7 +207,7 @@ function renderSheet(result) {
   g.fillStyle = "#222"; g.textAlign = "left"; g.font = "28px sans-serif";
   g.fillText("กระดาษคำตอบ", 60, 70);
   g.font = "18px sans-serif";
-  g.fillText(`รหัสประจำตัว  ${result.student_id || "—"}      ชุด ${result.set}   หน้า ${result.page}`, 60, 120);
+  g.fillText(`รหัสประจำตัว  ${result.student_id || ""}      ชุด ${result.set}   หน้า ${result.page}`, 60, 120);
   g.strokeStyle = "#999"; g.strokeRect(60, 150, 520, 150);
 
   const b = result.cells.box;
@@ -186,7 +276,8 @@ const Grade = {
   question(row, answer, rules) {
     const r = this.readRow(row, rules);
     answer = (answer || "").toUpperCase();
-    if (!answer) return { ...r, status: "nokey", points: 0, max: 0, note: "" };
+    // ไม่มีเฉลย = ข้อนี้ต้องเว้นว่าง · ไม่นับคะแนน แต่ถ้านักเรียนเขียนไว้ ให้ครูเห็น (status extra) [claude/gelatin · 2026-10-28]
+    if (!answer) return { ...r, status: r.word ? "extra" : "blank", points: 0, max: 0, note: r.word ? "ข้อนี้ต้องเว้นว่าง แต่มีคำตอบ (ไม่นับคะแนน)" : "" };
     const out = { ...r, max: 1, points: 0 };
 
     const problems = [];

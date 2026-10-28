@@ -86,7 +86,7 @@ const Store = (() => {
 const Settings = (() => {
   const KEY = "examer.settings";
   const defaults = {
-    engine: "mock",      // ยังไม่ได้ต่อโมเดลจริง → โหมดจำลองเท่านั้น [claude/gelatin · 2026-10-28]
+    reader: "model",     // model = โมเดลจริงในเบราว์เซอร์ (engine/) · mock = โหมดจำลอง  [claude/gelatin · 2026-10-28] (เดิมชื่อ engine — เปลี่ยนชื่อเพื่อไม่ให้ค่าเก่าค้าง)
     lowConf: 0.6,        // ต่ำกว่านี้ → ส่งครูตรวจทาน
     lowercase: "upper",  // upper = นับเป็นพิมพ์ใหญ่ · wrong = ผิด
     gap: "join",         // join = ต่อกัน · wrong = ผิด   (เว้นช่องกลางคำ)

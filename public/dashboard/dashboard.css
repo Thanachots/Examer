@@ -174,3 +174,11 @@ legend { padding: 0; margin-bottom: 8px; font-weight: 500; }
   #school-form, .d-form.inline { grid-template-columns: 1fr; }
   .d-table th, .d-table td { padding: 9px 12px; }
 }
+
+/* [claude/gelatin · 2026-10-28] เฉลยข้อสอบกลาง 20 ข้อ (ตาราง ชุด 1 ถึง 3 + คะแนน) */
+.keys-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-sm, 8px); }
+.keys-t td { padding: 4px 10px; vertical-align: middle; }
+.keys-t th { padding: 8px 10px; }
+.keys-t .key-in { width: 100%; min-width: 120px; min-height: 34px; font-family: var(--hand, inherit); font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+.keys-t .key-in:placeholder-shown { border-style: dashed; }
+.keys-t .pt-in { width: 64px; min-height: 34px; text-align: right; }

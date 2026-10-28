@@ -14,21 +14,29 @@ public/
 │   ├── core.js       ตัวช่วย · ไอคอน · โลโก้ · login (ต้นแบบ) · router
 │   ├── base.css      สี ฟอนต์ ปุ่ม ช่องกรอก
 │   ├── store.js      IndexedDB (ข้อสอบ, กระดาษ+รูป) + เกณฑ์ตรวจ — ของ Prame
-│   ├── pipeline.js   ผลอ่านจำลอง + เกณฑ์ให้คะแนน (รูปแบบตาม docs/ENGINE.md) — ของ Prame · จุดเดียวที่จะต่อโมเดลจริง (Pipeline.run)
+│   ├── pipeline.js   Pipeline.run (จุดเดียวที่เรียกโมเดล) · Engine + fromModel (ต่อ engine/) · ผลอ่านจำลอง · เกณฑ์ให้คะแนน — ของ Prame
 │   └── school.js     รายชื่อนักเรียน · ข้อสอบกลาง · คิดคะแนน · ไฟล์ส่งข้อมูล Dashboard ⇄ แอป (.json) — ของ Prame
+└── engine/           โมเดลอ่านกระดาษในเบราว์เซอร์ (Pyodide + ONNX) — ของ Prame · ดู engine/README.md  [claude/gelatin · 2026-10-28]
 ```
 
-> ยังไม่ได้ต่อโมเดลจริง — ตอนนี้ตรวจด้วยผลจำลองอย่างเดียว · engine ชุดเก่า (`engine/`, `shared/engine.js`, `shared/engine-worker.js`) เอาออกแล้ว · โมเดลใหม่อยู่ที่ [`../model/`](../model/) รอต่อเข้าเว็บ [claude/gelatin · 2026-10-28]
+> ~~ยังไม่ได้ต่อโมเดลจริง — ตอนนี้ตรวจด้วยผลจำลองอย่างเดียว~~ → ต่อโมเดลใหม่ของ Prame แล้ว (`engine/`) · engine ชุดเก่าเอาออกแล้ว [claude/gelatin · 2026-10-28]
 
 - `dashboard/` กับ `app/` อยู่เว็บเดียวกัน → ข้อมูลในเครื่อง (IndexedDB) ใช้ร่วมกันได้ และหน้า Application เปิด `../app/` ในกรอบมือถือ
-- ทำแอปมือถือจริงภายหลัง (เช่น Capacitor): รวม `app/` + `shared/` (+ โมเดล) เป็นโฟลเดอร์เดียวตอน build — แอปจริงจะมีที่เก็บข้อมูลของตัวเอง แยกจากเว็บ
+- ทำแอปมือถือจริงภายหลัง (เช่น Capacitor): รวม `app/` + `shared/` + `engine/` เป็นโฟลเดอร์เดียวตอน build — แอปจริงจะมีที่เก็บข้อมูลของตัวเอง แยกจากเว็บ
 - UI เดิมของ Prame ย้ายไปเก็บที่ [`../legacy/`](../legacy/) (ไม่ได้ deploy)
 
 ## เปิดใช้ในเครื่อง
-ต้องเปิดผ่าน http (IndexedDB ใช้กับ `file://` ไม่ได้)
+ต้องเปิดผ่าน http (IndexedDB / Web Worker ใช้กับ `file://` ไม่ได้)
+- Windows: ดับเบิลคลิก `start.bat` ที่โฟลเดอร์ repo → เปิด server + เบราว์เซอร์ให้ (ปิดหน้าต่างดำ = ปิด server)  [claude/gelatin · 2026-10-28]
+- หรือพิมพ์เอง:
 ```bash
 cd public && python -m http.server 8080   # Dashboard: http://localhost:8080 · แอปครู: http://localhost:8080/app/
 ```
+
+## ระบบตรวจ [claude/gelatin · 2026-10-28]
+- `app/app.js` › `runModels` → `Pipeline.run()` (`shared/pipeline.js`) → `Engine` → `engine/examer.js` → `engine/worker.js` (Pyodide)
+- `fromModel` แปลงผลของโมเดล (`rows[].cells`) → `reads` ที่หน้า app ใช้ · ยังไม่อ่านเลขประจำตัว / วงกลมชุด (ชุดสุ่มไว้ก่อน ครูเลือกเองได้)
+- ช้า: แผ่นละ ~30–90 วินาที · หน้าตรวจโหลดโมเดลไว้ตั้งแต่ขั้นถ่ายรูป · ตั้งค่า › ระบบตรวจ เลือก "โหมดจำลอง" ได้ (เดโมเร็ว) · รูปตัวอย่างใช้ผลจำลองเสมอ
 
 ## ~~ระบบตรวจในเบราว์เซอร์ (engine)~~ — เลิกใช้แล้ว: engine ชุดเก่าผูกกับ repo โมเดลเก่า ถูกเอาออกแล้ว [claude/gelatin · 2026-10-28]
 - ~~① ตัดขอบ ② หาช่อง: โค้ด Python ของ repo โมเดลเก่า (67160328/Computer-Vision) รันด้วย Pyodide + OpenCV · ③ อ่านตัวอักษร: ONNX 3 ตัวใน `engine/models/` รันด้วย onnxruntime-web~~

@@ -112,7 +112,7 @@ const Dashboard = (() => {
     const got = rows.filter((r) => r.source !== "waiting").length, wait = rows.length - got;
     page(`
       <div class="d-head">
-        <div><h2>ภาพรวม</h2><p class="muted">${esc([st.schoolName, termLabel(st)].filter(Boolean).join(" · ") || termLabel(st))}
+        <div><h2>ภาพรวม</h2><p class="muted">${esc([st.schoolName, termLabel(st)].filter(Boolean).join("\u2003") || termLabel(st))}
           <button class="link" id="school-edit">แก้ข้อมูลโรงเรียน</button></p></div>
         <div class="d-actions">${pickFile(".json,application/json", "นำเข้าไฟล์คะแนนจากครู")}</div>
       </div>
@@ -132,14 +132,14 @@ const Dashboard = (() => {
         <div class="d-card flush"><table class="d-table click">
           <thead><tr><th>การสอบ</th><th>วิชา</th><th>ห้อง</th><th>ครูผู้สอน</th><th class="num">ตรวจแล้ว</th><th class="num">เฉลี่ย</th><th>สถานะ</th></tr></thead>
           <tbody>${rows.map((r) => `<tr data-href="#/result/${r.id}" tabindex="0">
-            <td><b>${esc(r.exam.name)}</b><small>${esc([examKindLabel(r.exam.kind), r.exam.central && "ข้อสอบกลาง", r.exam.date && thaiDateShort(r.exam.date)].filter(Boolean).join(" · "))}</small></td>
+            <td><b>${esc(r.exam.name)}</b><small>${esc([examKindLabel(r.exam.kind), r.exam.central && "ข้อสอบกลาง", r.exam.date && thaiDateShort(r.exam.date)].filter(Boolean).join("\u2003"))}</small></td>
             <td>${esc([r.exam.subjectCode, r.exam.subject].filter(Boolean).join(" "))}</td>
             <td>${esc((r.exam.rooms || []).join(", "))}</td>
             <td>${esc(r.teacher)}</td>
-            <td class="num">${r.source === "waiting" ? "–" : `${r.n}${r.total ? `/${r.total}` : ""}`}</td>
-            <td class="num">${r.mean == null ? "–" : `${fmtNum(round1(r.mean))}<small>/${fmtNum(r.max)}</small>`}</td>
+            <td class="num">${r.source === "waiting" ? "" : `${r.n}${r.total ? `/${r.total}` : ""}`}</td>
+            <td class="num">${r.mean == null ? "" : `${fmtNum(round1(r.mean))}<small>/${fmtNum(r.max)}</small>`}</td>
             <td>${statusTag(r)}</td></tr>`).join("")}</tbody>
-        </table></div>` : blank("ยังไม่มีผลการสอบ", "ครูตรวจในแอปแล้วกด “ส่งคะแนนให้ฝ่ายวิชาการ” จะได้ไฟล์ .json มานำเข้าที่นี่ · หรือสร้างข้อสอบกลางให้ครูใช้ก่อน", `<a class="btn ghost" href="#/central/new">${ico("plus")}สร้างข้อสอบกลาง</a>`)}`);
+        </table></div>` : blank("ยังไม่มีผลการสอบ", "ครูตรวจในแอปแล้วกด “ส่งคะแนนให้ฝ่ายวิชาการ” จะได้ไฟล์ .json มานำเข้าที่นี่\u2003หรือสร้างข้อสอบกลางให้ครูใช้ก่อน", `<a class="btn ghost" href="#/central/new">${ico("plus")}สร้างข้อสอบกลาง</a>`)}`);
 
     $("#school-edit").onclick = () => { const f = $("#school-form"); f.hidden = !f.hidden; if (!f.hidden) f.schoolName.focus(); };
     $("#school-form").onsubmit = (e) => {
@@ -170,28 +170,28 @@ const Dashboard = (() => {
     let rows, max, counts;
     if (sub) ({ students: rows, max, counts } = sub);
     else ({ rows, max, counts } = examScores(exam, d.sheets.filter((x) => x.examId === id && x.saved), d.classes));
-    const src = sub ? `ครู${sub.teacher ? ` ${sub.teacher}` : ""} ส่งมาเมื่อ ${new Date(sub.sentAt).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })}` : rows.length ? "ตรวจในเครื่องนี้ (แอปครูในเว็บเดียวกัน)" : "ยังไม่มีคะแนน — รอครูส่ง";
+    const src = sub ? `ครู${sub.teacher ? ` ${sub.teacher}` : ""} ส่งมาเมื่อ ${new Date(sub.sentAt).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })}` : rows.length ? "ตรวจในเครื่องนี้ (แอปครูในเว็บเดียวกัน)" : "ยังไม่มีคะแนน\u2003รอครูส่ง";
     const sorted = [...rows].sort((a, b) => String(a.room || "~").localeCompare(String(b.room || "~"), "th") || (a.no ?? 1e9) - (b.no ?? 1e9));
     const ST = { done: "", review: "warn", absent: "muted", unknown: "bad" };
     page(`
       <a class="d-back" href="#/">${ico("back")}ภาพรวม</a>
       <div class="d-head">
         <div><h2>${esc(exam.name)}</h2>
-          <p class="muted">${esc([[exam.subjectCode, exam.subject].filter(Boolean).join(" "), examKindLabel(exam.kind), exam.date && thaiDateShort(exam.date), (exam.rooms || []).join(", ")].filter(Boolean).join(" · "))}</p>
+          <p class="muted">${esc([[exam.subjectCode, exam.subject].filter(Boolean).join(" "), examKindLabel(exam.kind), exam.date && thaiDateShort(exam.date), (exam.rooms || []).join(", ")].filter(Boolean).join("\u2003"))}</p>
           <p class="small muted">${esc(src)}</p></div>
         <div class="d-actions">${rows.length ? `<button class="btn primary" id="csv">${ico("download")}ไฟล์สำหรับ SGS / ปพ.5</button>` : ""}</div>
       </div>
       <div class="d-stats">
         <div><b>${counts?.scored ?? 0}</b><span>ตรวจแล้ว (คน)</span></div>
-        <div><b>${counts?.mean == null ? "–" : fmtNum(round1(counts.mean))}</b><span>คะแนนเฉลี่ย (เต็ม ${fmtNum(max)})</span></div>
+        <div><b>${counts?.mean == null ? "" : fmtNum(round1(counts.mean))}</b><span>คะแนนเฉลี่ย (เต็ม ${fmtNum(max)})</span></div>
         <div><b>${counts?.absent ?? 0}</b><span>ไม่มีกระดาษ</span></div>
         <div><b>${(counts?.review || 0) + (counts?.unknown || 0)}</b><span>ต้องตรวจซ้ำ</span></div>
       </div>
       ${sorted.length ? `<div class="d-card flush"><table class="d-table">
-        <thead><tr><th>ห้อง</th><th class="num">เลขที่</th><th>เลขประจำตัว</th><th>ชื่อ-สกุล</th><th class="num">คะแนน</th>${exam.scaleTo ? `<th class="num">คิดเป็น (${fmtNum(exam.scaleTo)})</th>` : ""}<th>หมายเหตุ</th></tr></thead>
+        <thead><tr><th>ห้อง</th><th class="num">เลขที่</th><th>เลขประจำตัว</th><th>ชื่อ นามสกุล</th><th class="num">คะแนน</th>${exam.scaleTo ? `<th class="num">คิดเป็น (${fmtNum(exam.scaleTo)})</th>` : ""}<th>หมายเหตุ</th></tr></thead>
         <tbody>${sorted.map((r) => `<tr class="${ST[r.status] || ""}">
-          <td>${esc(r.room)}</td><td class="num">${r.no ?? ""}</td><td class="mono">${esc(r.sid || "–")}</td><td>${esc(r.name)}</td>
-          <td class="num"><b>${r.score == null ? "–" : fmtNum(r.score)}</b></td>${exam.scaleTo ? `<td class="num">${r.scaled == null ? "–" : fmtNum(round1(r.scaled))}</td>` : ""}
+          <td>${esc(r.room)}</td><td class="num">${r.no ?? ""}</td><td class="mono">${esc(r.sid || "")}</td><td>${esc(r.name)}</td>
+          <td class="num"><b>${r.score == null ? "" : fmtNum(r.score)}</b></td>${exam.scaleTo ? `<td class="num">${r.scaled == null ? "" : fmtNum(round1(r.scaled))}</td>` : ""}
           <td class="small">${esc(r.note || "")}</td></tr>`).join("")}</tbody>
       </table></div>` : blank("ยังไม่มีคะแนน", "เมื่อครูตรวจเสร็จและส่งไฟล์คะแนนมา นำเข้าได้ที่หน้าภาพรวม")}
       ${sub ? `<button class="link danger-link" id="del">${ico("trash")}ลบคะแนนที่นำเข้านี้</button>` : ""}`);
@@ -237,17 +237,17 @@ const Dashboard = (() => {
       <div class="d-head">
         <div><h2>ห้อง ${esc(c.name)}</h2><p class="muted">${st.length ? `นักเรียน ${st.length} คน` : "ยังไม่มีรายชื่อ"}</p></div>
         <div class="d-actions">
-          <label class="lv">ระดับชั้น<select id="level"><option value="">–</option>${GRADE_LEVELS.map((l) => `<option ${c.level === l ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+          <label class="lv">ระดับชั้น<select id="level"><option value=""></option>${GRADE_LEVELS.map((l) => `<option ${c.level === l ? "selected" : ""}>${l}</option>`).join("")}</select></label>
         </div>
       </div>
       <div class="d-cols">
         <div class="d-card flush">${st.length ? `<table class="d-table">
-          <thead><tr><th class="num">เลขที่</th><th>เลขประจำตัว</th><th>ชื่อ-สกุล</th></tr></thead>
+          <thead><tr><th class="num">เลขที่</th><th>เลขประจำตัว</th><th>ชื่อ นามสกุล</th></tr></thead>
           <tbody>${st.map((s) => `<tr><td class="num">${s.no}</td><td class="mono">${esc(s.sid)}</td><td>${esc(s.name)}</td></tr>`).join("")}</tbody>
         </table>` : `<p class="muted pad">วางรายชื่อทางขวาเพื่อเริ่ม</p>`}</div>
         <form class="d-card d-form" id="roster">
           <h3>${st.length ? "แทนรายชื่อทั้งหมด" : "ใส่รายชื่อ"}</h3>
-          <p class="small muted">คัดลอกจาก Excel / SGS มาวางได้เลย บรรทัดละ 1 คน มี เลขที่ · เลขประจำตัว · ชื่อ-สกุล (เรียงแบบไหนก็ได้)</p>
+          <p class="small muted">คัดลอกจาก Excel / SGS มาวางได้เลย บรรทัดละ 1 คน มี เลขที่\u2003เลขประจำตัว\u2003ชื่อ นามสกุล (เรียงแบบไหนก็ได้)</p>
           <textarea name="text" rows="9" placeholder="1&#9;12345&#9;ด.ช.สมชาย ใจดี&#10;2&#9;12346&#9;ด.ญ.สมหญิง รักเรียน"></textarea>
           <p class="small" id="preview"></p>
           <div class="row-btns">${pickFile(".csv,.txt,text/csv,text/plain", "เปิดไฟล์ CSV")}<button class="btn primary" id="save" disabled>บันทึกรายชื่อ</button></div>
@@ -259,7 +259,7 @@ const Dashboard = (() => {
     const show = () => {
       parsed = Roster.parse(f.text.value);
       const dup = parsed.length - new Set(parsed.map((s) => Roster.norm(s.sid))).size;
-      $("#preview").innerHTML = f.text.value.trim() ? (parsed.length ? `พบ ${parsed.length} คน${dup ? ` · <span class="bad-t">เลขประจำตัวซ้ำ ${dup} คน</span>` : ""}` : `<span class="bad-t">ไม่พบเลขประจำตัว (ตัวเลข 4 หลักขึ้นไป)</span>`) : "";
+      $("#preview").innerHTML = f.text.value.trim() ? (parsed.length ? `พบ ${parsed.length} คน${dup ? `\u2003<span class="bad-t">เลขประจำตัวซ้ำ ${dup} คน</span>` : ""}` : `<span class="bad-t">ไม่พบเลขประจำตัว (ตัวเลข 4 หลักขึ้นไป)</span>`) : "";
       $("#save").disabled = !parsed.length;
     };
     f.text.oninput = show;
@@ -281,7 +281,7 @@ const Dashboard = (() => {
       <form class="d-card d-form grid" id="add">
         <label>รหัสวิชา<input name="code" placeholder="อ23101" required autocomplete="off" /></label>
         <label>ชื่อวิชา<input name="name" placeholder="ภาษาอังกฤษ 5" required autocomplete="off" /></label>
-        <label>ครูผู้สอน<input name="teacher" placeholder="ชื่อ-สกุลครู" list="tlist" autocomplete="off" /><datalist id="tlist">${teachers.map((t) => `<option value="${esc(t)}">`).join("")}</datalist></label>
+        <label>ครูผู้สอน<input name="teacher" placeholder="ชื่อ นามสกุลครู" list="tlist" autocomplete="off" /><datalist id="tlist">${teachers.map((t) => `<option value="${esc(t)}">`).join("")}</datalist></label>
         <label>ห้องที่สอน<input name="rooms" placeholder="ม.3/1, ม.3/2" list="clist" autocomplete="off" /><datalist id="clist">${cs.map((c) => `<option value="${esc(c.name)}">`).join("")}</datalist></label>
         <button class="btn primary">${ico("plus")}เพิ่มวิชา</button>
       </form>
@@ -309,7 +309,7 @@ const Dashboard = (() => {
     $$("[data-pkg]").forEach((b) => (b.onclick = async () => {
       const t = b.dataset.pkg, d = await Transfer.schoolPackage(t);
       downloadJson(d, `examer-ข้อมูลโรงเรียน-${safeName(t || "ทุกวิชา")}.json`);
-      toast(`ไฟล์สำหรับ${t ? ` ${t}` : "ครูทุกคน"}: ${d.subjects.length} วิชา · ${d.classes.length} ห้อง · ข้อสอบกลาง ${d.exams.length} ชุด`);
+      toast(`ไฟล์สำหรับ${t ? ` ${t}` : "ครูทุกคน"}: ${d.subjects.length} วิชา\u2003${d.classes.length} ห้อง\u2003ข้อสอบกลาง ${d.exams.length} ชุด`);
     }));
   }
 
@@ -324,9 +324,9 @@ const Dashboard = (() => {
       ${xs.length ? `<div class="d-card flush"><table class="d-table click">
         <thead><tr><th>การสอบ</th><th>วิชา</th><th>ห้อง</th><th class="num">ข้อ</th><th class="num">คะแนนเต็ม</th></tr></thead>
         <tbody>${xs.map((e) => `<tr data-href="#/central/${e.id}" tabindex="0">
-          <td><b>${esc(e.name)}</b><small>${esc([examKindLabel(e.kind), e.date && thaiDateShort(e.date), e.sets > 1 && `${e.sets} ชุด`].filter(Boolean).join(" · "))}</small></td>
+          <td><b>${esc(e.name)}</b><small>${esc([examKindLabel(e.kind), e.date && thaiDateShort(e.date), e.sets > 1 && `${e.sets} ชุด`].filter(Boolean).join("\u2003"))}</small></td>
           <td>${esc([e.subjectCode, e.subject].filter(Boolean).join(" "))}</td><td>${esc((e.rooms || []).join(", "))}</td>
-          <td class="num">${e.n}</td><td class="num">${fmtNum(e.scaleTo || e.points.reduce((a, p) => a + p, 0))}</td></tr>`).join("")}</tbody>
+          <td class="num">${examQs(e).length}</td><td class="num">${fmtNum(e.scaleTo || examMaxPts(e))}</td></tr>`).join("")}</tbody>
       </table></div>` : blank("ยังไม่มีข้อสอบกลาง", "ใช้กับสอบกลางภาค/ปลายภาคที่ทุกห้องใช้ข้อสอบชุดเดียวกัน")}`);
     bindRows();
   }
@@ -335,22 +335,30 @@ const Dashboard = (() => {
     const [subjectsL, cs] = await Promise.all([Store.all("subjects"), Store.all("classes")]);
     const isNew = id === "new";
     const e = isNew ? { id: schoolId(), format: SCHOOL_FORMAT, central: true, status: "ready", name: "", subject: "", subjectCode: "", kind: "midterm", date: "",
-      rooms: [], n: 0, sets: 1, keys: { 1: [], 2: [], 3: [] }, points: [], scaleTo: null, createdAt: Date.now() } : await Store.get("exams", id);
+      rooms: [], n: 20, sets: 1, keys: { 1: [], 2: [], 3: [] }, points: [], scaleTo: null, createdAt: Date.now() } : await Store.get("exams", id);
     if (!e) { location.hash = "#/central"; return; }
+    examTo20(e); // 20 ข้อเสมอ · ข้อที่ไม่มีเฉลย = นักเรียนต้องเว้นว่าง ไม่นับคะแนน [claude/gelatin · 2026-10-28]
     const used = isNew ? 0 : (await Store.all("sheets")).filter((s) => s.examId === id).length;
     page(`
       <a class="d-back" href="#/central">${ico("back")}ข้อสอบกลาง</a>
       <div class="d-head"><div><h2>${isNew ? "สร้างข้อสอบกลาง" : esc(e.name)}</h2>
-        ${used ? `<p class="review-note">ครูในเครื่องนี้ตรวจไปแล้ว ${used} แผ่น — แก้เฉลยแล้วคะแนนจะคิดใหม่</p>` : ""}</div></div>
+        ${used ? `<p class="review-note">ครูในเครื่องนี้ตรวจไปแล้ว ${used} แผ่น\u2003แก้เฉลยแล้วคะแนนจะคิดใหม่</p>` : ""}</div></div>
       <form class="d-card d-form grid" id="ef">
         <label class="wide">ชื่อการสอบ<input name="name" value="${esc(e.name)}" placeholder="เช่น สอบกลางภาค ภาษาอังกฤษ ม.3" required autocomplete="off" /></label>
-        <label>วิชา<select name="subj"><option value="">– เลือกวิชา –</option>${subjectsL.map((x) => `<option value="${x.id}" ${x.code === e.subjectCode ? "selected" : ""}>${esc(x.code)} ${esc(x.name)}</option>`).join("")}</select></label>
+        <label>วิชา<select name="subj"><option value="">เลือกวิชา</option>${subjectsL.map((x) => `<option value="${x.id}" ${x.code === e.subjectCode ? "selected" : ""}>${esc(x.code)} ${esc(x.name)}</option>`).join("")}</select></label>
         <label>ประเภท<select name="kind">${EXAM_KINDS.map(([v, l]) => `<option value="${v}" ${e.kind === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
         <label>วันที่สอบ<input type="date" name="date" value="${esc(e.date || "")}" /></label>
         <label>คิดเป็นคะแนนเต็ม <small class="muted">(ไม่บังคับ)</small><input name="scaleTo" type="number" min="1" value="${e.scaleTo ?? ""}" placeholder="เช่น 20" /></label>
-        <fieldset class="wide"><legend>ห้องที่สอบ</legend><div class="checks">${cs.sort(byRoom).map((c) => `<label class="chk"><input type="checkbox" name="room" value="${esc(c.name)}" ${e.rooms.includes(c.name) ? "checked" : ""} />${esc(c.name)}</label>`).join("") || `<span class="muted small">ยังไม่มีห้อง — เพิ่มที่แท็บห้องเรียน</span>`}</div></fieldset>
-        <fieldset class="wide"><legend>เฉลย <small class="muted">บรรทัดละ 1 ข้อ ตัวอักษร A–Z ไม่เกิน 20 ตัว · สูงสุด 20 ข้อ</small></legend>
-          <div class="keys">${[1, 2, 3].map((s) => `<label ${s > Math.max(1, e.sets) ? "data-more hidden" : ""}>ชุดที่ ${s}<textarea name="k${s}" rows="10" spellcheck="false" autocapitalize="characters">${esc((e.keys[s] || []).join("\n"))}</textarea><small class="kc muted"></small></label>`).join("")}</div>
+        <fieldset class="wide"><legend>ห้องที่สอบ</legend><div class="checks">${cs.sort(byRoom).map((c) => `<label class="chk"><input type="checkbox" name="room" value="${esc(c.name)}" ${e.rooms.includes(c.name) ? "checked" : ""} />${esc(c.name)}</label>`).join("") || `<span class="muted small">ยังไม่มีห้อง\u2003เพิ่มที่แท็บห้องเรียน</span>`}</div></fieldset>
+        <fieldset class="wide"><legend>เฉลย</legend>
+          <p class="small muted">กระดาษคำตอบมี 20 ข้อ ใส่เฉลยเฉพาะข้อที่ใช้ (ตัวอักษร A ถึง Z ไม่เกิน 20 ตัว) ข้อที่ไม่ใส่เฉลย นักเรียนต้องเว้นว่างไว้ ข้อนั้นไม่นับคะแนน</p>
+          <div class="keys-wrap"><table class="d-table keys-t">
+            <thead><tr><th class="num">ข้อ</th>${[1, 2, 3].map((k) => `<th data-set="${k}" ${k > Math.max(1, e.sets) ? "hidden" : ""}>ชุดที่ ${k}</th>`).join("")}<th class="num">คะแนน</th></tr></thead>
+            <tbody>${Array.from({ length: 20 }, (_, i) => `<tr><td class="num">${i + 1}</td>
+              ${[1, 2, 3].map((k) => `<td data-set="${k}" ${k > Math.max(1, e.sets) ? "hidden" : ""}><input class="key-in" name="k${k}_${i}" value="${esc(e.keys[k][i] || "")}" placeholder="เว้นว่าง" maxlength="20" autocomplete="off" spellcheck="false" autocapitalize="characters" aria-label="ชุดที่ ${k} ข้อ ${i + 1}" /></td>`).join("")}
+              <td class="num"><input class="pt-in" name="p_${i}" type="number" min="1" max="10" value="${e.points[i] ?? 1}" aria-label="คะแนนข้อ ${i + 1}" /></td></tr>`).join("")}</tbody>
+          </table></div>
+          <p class="small muted" id="kc"></p>
           <button type="button" class="link" id="more" ${e.sets >= 3 ? "hidden" : ""}>${ico("plus")}เพิ่มชุดข้อสอบ</button>
         </fieldset>
         <p class="bad-t wide" id="err" hidden></p>
@@ -358,27 +366,29 @@ const Dashboard = (() => {
       </form>
       ${isNew ? "" : `<button class="link danger-link" id="del">${ico("trash")}ลบข้อสอบกลางนี้</button>`}`);
     const f = $("#ef");
-    const clean = (t) => t.split(/\r?\n/).map((w) => w.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 20)).filter(Boolean).slice(0, 20);
-    const count = () => $$(".keys label:not([hidden])").forEach((l) => { const n = clean($("textarea", l).value).length; $(".kc", l).textContent = n ? `${n} ข้อ` : ""; });
-    f.oninput = count; count();
-    $("#more").onclick = () => { const next = $(".keys [data-more][hidden]"); if (next) next.hidden = false; if (!$(".keys [data-more][hidden]")) $("#more").hidden = true; count(); };
+    const nSets = () => $$("thead [data-set]:not([hidden])", f).length;
+    const keyOf = (k) => Array.from({ length: 20 }, (_, i) => f[`k${k}_${i}`].value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 20));
+    const count = () => { $("#kc").textContent = [1, 2, 3].slice(0, nSets()).map((k) => `ชุดที่ ${k} มีเฉลย ${keyOf(k).filter(Boolean).length} ข้อ`).join("   "); };
+    f.oninput = (ev) => { if (ev.target.classList.contains("key-in")) ev.target.value = ev.target.value.toUpperCase().replace(/[^A-Z]/g, ""); count(); };
+    count();
+    $("#more").onclick = () => { const k = nSets() + 1; $$(`[data-set="${k}"]`, f).forEach((x) => (x.hidden = false)); if (k >= 3) $("#more").hidden = true; count(); };
     f.onsubmit = async (ev) => {
       ev.preventDefault();
-      const sets = $$(".keys label:not([hidden])").map((l) => clean($("textarea", l).value)).filter((k, i) => i === 0 || k.length);
-      const n = sets[0].length;
-      const err = !f.name.value.trim() ? "ใส่ชื่อการสอบ" : !n ? "ใส่เฉลยชุดที่ 1" : sets.some((k) => k.length !== n) ? `ทุกชุดต้องมีจำนวนข้อเท่ากัน (ชุดที่ 1 มี ${n} ข้อ)` : "";
+      const sets = [1, 2, 3].slice(0, nSets()).map(keyOf);
+      const empty = sets.findIndex((k) => !k.some(Boolean));
+      const err = !f.name.value.trim() ? "ใส่ชื่อการสอบ" : empty === 0 ? "ใส่เฉลยชุดที่ 1 อย่างน้อย 1 ข้อ" : empty > 0 ? `ชุดที่ ${empty + 1} ยังไม่มีเฉลย` : "";
       $("#err").hidden = !err; $("#err").textContent = err;
       if (err) return;
       const subj = subjectsL.find((x) => x.id === f.subj.value);
       Object.assign(e, {
         name: f.name.value.trim(), subject: subj?.name || "", subjectCode: subj?.code || "", kind: f.kind.value, date: f.date.value,
-        rooms: $$('[name="room"]:checked', f).map((c) => c.value), n, sets: sets.length,
-        keys: Object.fromEntries([1, 2, 3].map((s) => [s, sets[s - 1] || []])),
-        points: Array.from({ length: n }, (_, i) => e.points[i] ?? 1), scaleTo: Number(f.scaleTo.value) || null, updatedAt: Date.now(),
+        rooms: $$('[name="room"]:checked', f).map((c) => c.value), n: 20, sets: sets.length,
+        keys: Object.fromEntries([1, 2, 3].map((s) => [s, sets[s - 1] || Array(20).fill("")])),
+        points: Array.from({ length: 20 }, (_, i) => Math.min(10, Math.max(1, Number(f[`p_${i}`].value) || 1))), scaleTo: Number(f.scaleTo.value) || null, updatedAt: Date.now(),
       });
       delete e.work;
       await Store.put("exams", e);
-      toast(isNew ? "สร้างข้อสอบกลางแล้ว — ส่งให้ครูด้วยไฟล์ในแท็บรายวิชาและครู" : "บันทึกแล้ว");
+      toast(isNew ? "สร้างข้อสอบกลางแล้ว\u2003ส่งให้ครูด้วยไฟล์ในแท็บรายวิชาและครู" : "บันทึกแล้ว");
       location.hash = "#/central";
     };
     const del = $("#del");
