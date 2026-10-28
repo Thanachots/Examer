@@ -44,10 +44,27 @@ const Roster = {
 
 // ---------- คะแนนของกระดาษ 1 แผ่น (เกณฑ์ตรวจ: Grade ใน pipeline.js) ----------
 // คะแนนต่อข้อ = (ถูกทั้งคำ 1 / ได้บางส่วน 0–1 ตามเกณฑ์) × คะแนนของข้อนั้น · ครูสั่งนับถูก/ผิดได้
+// ข้อสอบมี 20 ข้อเสมอ (ตามกระดาษคำตอบ) · ข้อที่ไม่มีเฉลย = นักเรียนต้องเว้นว่าง ไม่นับคะแนน [claude/gelatin · 2026-10-28]
+const EXAM_ROWS = 20;
+// ข้อที่มีเฉลย (อย่างน้อยหนึ่งชุด) → index 0–19
+const examQs = (exam) => Array.from({ length: EXAM_ROWS }, (_, i) => i).filter((i) => [1, 2, 3].some((k) => k <= (exam.sets || 1) && exam.keys?.[k]?.[i]));
+const examMaxPts = (exam) => examQs(exam).reduce((a, i) => a + (exam.points?.[i] ?? 1), 0);
+// ข้อสอบรุ่นก่อน (n ข้อ) → 20 ข้อ: เติมเฉลยว่างและคะแนน 1 ให้ครบ
+function examTo20(e) {
+  if (!e?.keys) return e;
+  e.n = EXAM_ROWS;
+  for (const k of [1, 2, 3]) { const a = e.keys[k] || []; e.keys[k] = Array.from({ length: EXAM_ROWS }, (_, i) => a[i] || ""); }
+  e.points = Array.from({ length: EXAM_ROWS }, (_, i) => e.points?.[i] ?? 1);
+  return e;
+}
+
 function gradeExamSheet(s, exam, rules = Settings.get()) {
   const keys = Object.fromEntries([1, 2, 3].map((k) => [k, k <= exam.sets ? exam.keys[k] || [] : []]));
   const g = Grade.sheet({ result: s.result, setOverride: s.setOverride }, { keys }, rules);
-  const rows = g.rows.filter((r) => r.max > 0 && r.q <= exam.n).map((r) => {
+  const all = g.rows.filter((r) => r.q <= EXAM_ROWS);
+  const blankOk = all.filter((r) => r.status === "blank").length; // ข้อไม่มีเฉลยที่เว้นว่างถูกต้อง
+  const rows = all.filter((r) => r.max > 0 || r.status === "extra").map((r) => {
+    if (r.status === "extra") return r;
     const w = exam.points[r.q - 1] ?? 1;
     const o = s.overrides?.[r.q];
     return o ? { ...r, max: w, points: o === "right" ? w : 0, status: o, override: true } : { ...r, max: w, points: r.points * w };
@@ -57,6 +74,7 @@ function gradeExamSheet(s, exam, rules = Settings.get()) {
     rows, score, max, set: g.set,
     scaled: exam.scaleTo && max ? (score * exam.scaleTo) / max : null,
     review: rows.filter((r) => r.status === "review").length,
+    extra: rows.filter((r) => r.status === "extra").length, blankOk,
   };
 }
 const sheetStudentId = (s) => s.studentId ?? s.result?.student_id ?? "";
@@ -84,7 +102,7 @@ function examScores(exam, sheets, classes, rules = Settings.get()) {
   const byId = new Map(roster.map((s) => [Roster.norm(s.sid), s]));
   const rows = new Map(roster.map((s) => [Roster.norm(s.sid), { ...s, status: "absent", score: null, max: null, scaled: null, review: 0, sheetId: null, note: "ไม่มีกระดาษคำตอบ", sheets: 0 }]));
   const extra = [];
-  const max = exam.points.slice(0, exam.n).reduce((a, p) => a + p, 0);
+  const max = examMaxPts(exam);
   for (const s of [...sheets].sort((a, b) => a.createdAt - b.createdAt)) {
     if (!s.result) continue;
     const g = gradeExamSheet(s, exam, rules);
@@ -93,10 +111,10 @@ function examScores(exam, sheets, classes, rules = Settings.get()) {
     if (k && rows.has(k)) {
       const r = rows.get(k);
       r.sheets += 1;
-      Object.assign(r, base, r.sheets > 1 ? { note: [`มี ${r.sheets} แผ่น ใช้แผ่นล่าสุด`, base.note].filter(Boolean).join(" · ") } : {});
+      Object.assign(r, base, r.sheets > 1 ? { note: [`มี ${r.sheets} แผ่น ใช้แผ่นล่าสุด`, base.note].filter(Boolean).join("\u2003") } : {});
     } else {
       extra.push({ room: "", no: null, sid, name: "", ...base, status: roster.length ? "unknown" : base.status,
-        note: [!sid ? "อ่านเลขประจำตัวไม่ได้" : roster.length ? "ไม่พบเลขประจำตัวในรายชื่อ" : "", base.note].filter(Boolean).join(" · ") });
+        note: [!sid ? "อ่านเลขประจำตัวไม่ได้" : roster.length ? "ไม่พบเลขประจำตัวในรายชื่อ" : "", base.note].filter(Boolean).join("\u2003") });
     }
   }
   const all = [...rows.values(), ...extra];
@@ -118,9 +136,9 @@ function examScores(exam, sheets, classes, rules = Settings.get()) {
 
 // ---------- CSV สำหรับกรอกคะแนน (SGS / ปพ.5) ----------
 // เรียง ห้อง → เลขที่ · คอลัมน์: ห้อง, เลขที่, เลขประจำตัว, ชื่อ-สกุล, คะแนน, คิดเป็น (ถ้ามี), หมายเหตุ
-function scoresCsv(exam, rows, max = exam.points.slice(0, exam.n).reduce((a, p) => a + p, 0)) {
+function scoresCsv(exam, rows, max = examMaxPts(exam)) {
   const sorted = [...rows].sort((a, b) => String(a.room || "~").localeCompare(String(b.room || "~"), "th") || (a.no ?? 1e9) - (b.no ?? 1e9) || String(a.sid).localeCompare(String(b.sid)));
-  const head = ["ห้อง", "เลขที่", "เลขประจำตัว", "ชื่อ-สกุล", `คะแนน (เต็ม ${fmtNum(max)})`, ...(exam.scaleTo ? [`คิดเป็น (เต็ม ${fmtNum(exam.scaleTo)})`] : []), "หมายเหตุ"];
+  const head = ["ห้อง", "เลขที่", "เลขประจำตัว", "ชื่อ นามสกุล", `คะแนน (เต็ม ${fmtNum(max)})`, ...(exam.scaleTo ? [`คิดเป็น (เต็ม ${fmtNum(exam.scaleTo)})`] : []), "หมายเหตุ"];
   const body = sorted.map((r) => [r.room, r.no ?? "", r.sid, r.name, fmtNum(r.score), ...(exam.scaleTo ? [fmtNum(round1(r.scaled))] : []), r.note || ""]);
   return "﻿" + [head, ...body].map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n"); // BOM → Excel อ่านภาษาไทยได้
 }
@@ -146,7 +164,7 @@ const Transfer = {
   // แอปครู: นำเข้าไฟล์จากฝ่ายวิชาการ (ข้อสอบกลางที่ครูตรวจไปแล้วไม่ลบกระดาษ แค่อัปเดตเฉลย)
   async importPackage(d) {
     if (d?.app !== "examer" || d.type !== "school-package") throw new Error("ไม่ใช่ไฟล์ข้อมูลจากฝ่ายวิชาการ");
-    if (d.format !== SCHOOL_FORMAT) throw new Error("ไฟล์นี้มาจาก Examer รุ่นเก่า — ให้ฝ่ายวิชาการสร้างไฟล์ใหม่");
+    if (d.format !== SCHOOL_FORMAT) throw new Error("ไฟล์นี้มาจาก Examer รุ่นเก่า\u2003ให้ฝ่ายวิชาการสร้างไฟล์ใหม่");
     for (const c of d.classes || []) await Store.put("classes", c);
     for (const x of d.subjects || []) await Store.put("subjects", x);
     for (const e of d.exams || []) await Store.put("exams", { ...e, central: true, status: "ready" });
@@ -175,7 +193,7 @@ const Transfer = {
   // Dashboard: นำเข้าไฟล์คะแนนจากครู (ส่งซ้ำ = แทนของเดิม)
   async importResults(d) {
     if (d?.app !== "examer" || d.type !== "results") throw new Error("ไม่ใช่ไฟล์คะแนนจากครู");
-    if (d.format !== SCHOOL_FORMAT) throw new Error("ไฟล์นี้มาจาก Examer รุ่นเก่า — ให้ครูส่งใหม่");
+    if (d.format !== SCHOOL_FORMAT) throw new Error("ไฟล์นี้มาจาก Examer รุ่นเก่า\u2003ให้ครูส่งใหม่");
     await Store.put("submissions", { ...d, id: d.exam.id, importedAt: Date.now() });
     return d;
   },
@@ -183,7 +201,7 @@ const Transfer = {
 
 async function readJsonFile(file) {
   try { return JSON.parse(await file.text()); }
-  catch { throw new Error("เปิดไฟล์ไม่ได้ — ต้องเป็นไฟล์ .json จาก Examer"); }
+  catch { throw new Error("เปิดไฟล์ไม่ได้\u2003ต้องเป็นไฟล์ .json จาก Examer"); }
 }
 
 function downloadFile(blob, name) {

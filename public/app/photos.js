@@ -42,7 +42,7 @@ const Photos = (() => {
       img = await decode(blob);
       converted = true;
     }
-    if (!img) throw new Error(`เปิดไฟล์ ${file.name || "นี้"} ไม่ได้ — ใช้รูป JPG, PNG หรือ HEIC`);
+    if (!img) throw new Error(`เปิดไฟล์ ${file.name || "นี้"} ไม่ได้\u2003ใช้รูป JPG, PNG หรือ HEIC`);
 
     let [w, h] = sizeOf(img);
     const big = Math.max(w, h);
